@@ -1,0 +1,12 @@
+{
+  "version": "0.0.1",
+  "configurations": [
+    {
+      "name": "bankroller",
+      "runtimeExecutable": "npm",
+      "runtimeArgs": ["run", "dev", "--", "--port", "4567"],
+      "cwd": "/Users/jespergisslen/code/bankroller",
+      "port": 4567
+    }
+  ]
+}
