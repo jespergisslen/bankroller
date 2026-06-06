@@ -1,64 +1,49 @@
 "use client";
 
 import { useState } from "react";
-
-type Bet = {
-  date: string;
-  match: string;
-  sport: string;
-  market: string;
-  line: string;
-  odds: number;
-  closingOdds: number | null;
-  stake: number;
-  result: string;
-  profit: number | null;
-};
+import { type Bet } from "@/lib/mockData";
 
 interface BetDrawerProps {
   bet: Bet;
   onClose: () => void;
   onDelete: () => void;
-  onSave: (closingOdds: number | null) => void;
+  onSave: (closingOdds: number | null, selectionIndex?: number) => void;
 }
 
 export function BetDrawer({ bet, onClose, onDelete, onSave }: BetDrawerProps) {
-  const [closingOdds, setClosingOdds] = useState(
-    bet.closingOdds ? String(bet.closingOdds) : ""
+  const isMulti = bet.betType !== "Single";
+  const combinedOdds = bet.selections.reduce((acc, s) => acc * s.odds, 1);
+
+  const [closingValues, setClosingValues] = useState<string[]>(
+    bet.selections.map(s => s.closingOdds ? String(s.closingOdds) : "")
   );
   const [confirmDelete, setConfirmDelete] = useState(false);
 
-  const clv =
-    closingOdds && bet.odds && parseFloat(closingOdds) > 0
-      ? ((bet.odds / parseFloat(closingOdds)) - 1) * 100
-      : null;
+  const updateClosing = (i: number, val: string) => {
+    setClosingValues(prev => prev.map((v, idx) => idx === i ? val : v));
+  };
 
-  const resultColors: Record<string, string> = {
-    win: "var(--accent)",
-    loss: "var(--neg)",
-    open: "var(--warn)",
-    void: "var(--text-2)",
+  const clvFor = (odds: number, closingStr: string) => {
+    const c = parseFloat(closingStr);
+    return c > 0 ? ((odds / c) - 1) * 100 : null;
+  };
+
+  const betTypeColor: Record<string, string> = {
+    Double: "#5ad1ff", Treble: "#e6b23a", Accumulator: "#b48cff", Single: "var(--accent)",
   };
 
   return (
     <>
-      {/* Backdrop */}
-      <div
-        onClick={onClose}
-        style={{
-          position: "fixed", inset: 0, zIndex: 80,
-          background: "rgba(0,0,0,0.45)",
-          backdropFilter: "blur(2px)",
-          animation: "fadeInBd 0.2s ease both",
-        }}
-      />
+      <div onClick={onClose} style={{
+        position: "fixed", inset: 0, zIndex: 80,
+        background: "rgba(0,0,0,0.45)", backdropFilter: "blur(2px)",
+        animation: "fadeInBd 0.2s ease both",
+      }} />
 
-      {/* Drawer */}
       <div style={{
         position: "fixed", top: 0, right: 0, bottom: 0,
-        width: 420, zIndex: 90,
-        background: "var(--bg-1)",
-        borderLeft: "1px solid var(--line-2)",
+        width: 440, zIndex: 90,
+        background: "var(--bg-1)", borderLeft: "1px solid var(--line-2)",
         display: "flex", flexDirection: "column",
         animation: "slideIn 0.22s cubic-bezier(.2,.7,.2,1) both",
         overflowY: "auto",
@@ -70,123 +55,122 @@ export function BetDrawer({ bet, onClose, onDelete, onSave }: BetDrawerProps) {
 
         {/* Header */}
         <div style={{
-          padding: "16px 20px",
-          borderBottom: "1px solid var(--line)",
+          padding: "16px 20px", borderBottom: "1px solid var(--line)",
           display: "flex", alignItems: "center", justifyContent: "space-between",
           position: "sticky", top: 0, background: "var(--bg-1)", zIndex: 1,
         }}>
           <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
-            <span style={{ fontSize: 20 }}>{bet.sport}</span>
-            <div>
-              <div style={{ fontWeight: 600, fontSize: 14, letterSpacing: "-0.01em" }}>{bet.match}</div>
-              <div style={{ color: "var(--text-3)", fontFamily: "var(--mono)", fontSize: 11, marginTop: 2 }}>{bet.date}</div>
-            </div>
+            <span style={{
+              fontFamily: "var(--mono)", fontSize: 10.5, padding: "3px 8px", borderRadius: 4,
+              background: betTypeColor[bet.betType] + "18",
+              border: `1px solid ${betTypeColor[bet.betType]}44`,
+              color: betTypeColor[bet.betType],
+            }}>{bet.betType}</span>
+            <div style={{ color: "var(--text-3)", fontFamily: "var(--mono)", fontSize: 11 }}>{bet.date}</div>
           </div>
           <button onClick={onClose} className="btn sm" style={{ width: 28, height: 28, padding: 0, justifyContent: "center" }}>✕</button>
         </div>
 
-        {/* Content */}
-        <div style={{ padding: 20, display: "flex", flexDirection: "column", gap: 20, flex: 1 }}>
+        <div style={{ padding: 20, display: "flex", flexDirection: "column", gap: 16, flex: 1 }}>
 
-          {/* Result badge */}
-          <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
+          {/* Result + P&L */}
+          <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
             <span className={`result-pill ${bet.result}`} style={{ fontSize: 12, padding: "4px 10px" }}>{bet.result}</span>
             {bet.profit !== null && bet.profit !== 0 && (
-              <span
-                className={`num ${bet.profit > 0 ? "pos glow" : "neg"}`}
-                style={{ fontSize: 16, fontWeight: 600 }}
-              >
+              <span className={`num ${bet.profit > 0 ? "pos glow" : "neg"}`} style={{ fontSize: 18, fontWeight: 700 }}>
                 {bet.profit > 0 ? "+" : ""}{bet.profit}u
               </span>
             )}
-          </div>
-
-          {/* Stats grid */}
-          <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 8 }}>
-            {[
-              { label: "Market",    val: bet.market },
-              { label: "Selection", val: bet.line || "—" },
-              { label: "Odds",      val: bet.odds.toFixed(2), mono: true, highlight: true },
-              { label: "Stake",     val: `${bet.stake}u`, mono: true },
-            ].map(item => (
-              <div key={item.label} style={{
-                padding: "12px 14px",
-                background: "var(--bg-2)",
-                borderRadius: "var(--r-m)",
-                border: "1px solid var(--line)",
-              }}>
-                <div className="label" style={{ marginBottom: 5 }}>{item.label}</div>
-                <div
-                  className={item.mono ? "num" : ""}
-                  style={{
-                    fontSize: item.highlight ? 20 : 14,
-                    fontWeight: item.highlight ? 600 : 500,
-                    color: item.highlight ? "var(--accent)" : "var(--text)",
-                    textShadow: item.highlight ? "0 0 calc(10px * var(--glow)) color-mix(in oklch, var(--accent) 60%, transparent)" : "none",
-                  }}
-                >{item.val}</div>
+            <div style={{ marginLeft: "auto", textAlign: "right" }}>
+              <div className="label" style={{ marginBottom: 3 }}>{isMulti ? "combined" : "odds"}</div>
+              <div className="num pos glow" style={{ fontSize: isMulti ? 22 : 20, fontWeight: 700 }}>
+                {isMulti ? combinedOdds.toFixed(2) : bet.selections[0].odds.toFixed(2)}
               </div>
-            ))}
-          </div>
-
-          {/* Closing odds / CLV */}
-          <div style={{
-            padding: "16px",
-            background: "var(--bg-2)",
-            borderRadius: "var(--r-m)",
-            border: `1px solid ${clv !== null ? (clv >= 0 ? "color-mix(in oklch, var(--accent) 25%, transparent)" : "var(--line)") : "var(--line)"}`,
-            transition: "border-color 0.2s",
-          }}>
-            <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 12 }}>
-              <div className="label">Closing Line Value</div>
-              {clv !== null && (
-                <div className={`num ${clv >= 0 ? "pos glow" : "neg"}`} style={{ fontSize: 20, fontWeight: 700 }}>
-                  {clv >= 0 ? "+" : ""}{clv.toFixed(1)}%
-                </div>
-              )}
             </div>
-
-            <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
-              <div style={{ flex: 1 }}>
-                <div className="label" style={{ marginBottom: 6 }}>Closing odds</div>
-                <input
-                  value={closingOdds}
-                  onChange={e => setClosingOdds(e.target.value)}
-                  placeholder="e.g. 1.90"
-                  type="number"
-                  step="0.01"
-                  min="1"
-                  style={{
-                    width: "100%", padding: "9px 12px",
-                    borderRadius: "var(--r-s)",
-                    border: "1px solid var(--line-2)",
-                    background: "var(--bg-3)",
-                    color: "var(--text)",
-                    fontFamily: "var(--mono)", fontSize: 14,
-                    outline: "none",
-                  }}
-                />
-              </div>
-              {bet.odds && closingOdds && (
-                <div style={{ flexShrink: 0, paddingTop: 22, color: "var(--text-3)", fontFamily: "var(--mono)", fontSize: 11, textAlign: "center" }}>
-                  <div>your bet</div>
-                  <div className="num" style={{ color: "var(--text-2)", fontSize: 14 }}>{bet.odds.toFixed(2)}</div>
-                </div>
-              )}
-            </div>
-
-            {clv === null && (
-              <div style={{ color: "var(--text-4)", fontFamily: "var(--mono)", fontSize: 11, marginTop: 8 }}>
-                Fetched automatically via Odds API after kickoff — or enter manually.
-              </div>
-            )}
           </div>
 
-          {/* Save button */}
+          {/* Stake */}
+          <div style={{ padding: "10px 14px", background: "var(--bg-2)", borderRadius: "var(--r-m)", border: "1px solid var(--line)", display: "flex", justifyContent: "space-between" }}>
+            <span className="label">Stake</span>
+            <span className="num" style={{ fontSize: 14, color: "var(--text-2)" }}>{bet.stake}u</span>
+          </div>
+
+          {/* Selections */}
+          <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
+            {bet.selections.map((sel, i) => {
+              const clv = clvFor(sel.odds, closingValues[i]);
+              return (
+                <div key={i} style={{
+                  padding: 14, borderRadius: "var(--r-m)",
+                  border: `1px solid ${clv !== null && clv >= 0 ? "color-mix(in oklch, var(--accent) 20%, transparent)" : "var(--line)"}`,
+                  background: "var(--bg-2)",
+                  display: "flex", flexDirection: "column", gap: 12,
+                  transition: "border-color 0.2s",
+                }}>
+                  {/* Selection header */}
+                  <div style={{ display: "flex", alignItems: "flex-start", justifyContent: "space-between", gap: 10 }}>
+                    <div>
+                      {isMulti && (
+                        <div style={{ color: "var(--text-4)", fontFamily: "var(--mono)", fontSize: 10, marginBottom: 4 }}>
+                          Selection {i + 1}
+                        </div>
+                      )}
+                      <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
+                        <span style={{ fontSize: 16 }}>{sel.sport}</span>
+                        <div>
+                          <div style={{ fontWeight: 600, fontSize: 13.5 }}>{sel.match}</div>
+                          <div style={{ color: "var(--text-3)", fontFamily: "var(--mono)", fontSize: 11, marginTop: 2 }}>
+                            {sel.market}{sel.line ? ` · ${sel.line}` : ""}
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                    <div style={{ textAlign: "right", flexShrink: 0 }}>
+                      <div className="label" style={{ marginBottom: 3 }}>odds</div>
+                      <div className="num pos" style={{ fontSize: 16, fontWeight: 600 }}>{sel.odds.toFixed(2)}</div>
+                    </div>
+                  </div>
+
+                  {/* Closing odds / CLV */}
+                  <div>
+                    <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 6 }}>
+                      <div className="label">
+                        Closing odds <span style={{ color: "var(--text-4)", letterSpacing: 0, textTransform: "none", fontSize: 11 }}>(optional)</span>
+                      </div>
+                      {clv !== null && (
+                        <div className={`num ${clv >= 0 ? "pos glow" : "neg"}`} style={{ fontSize: 16, fontWeight: 700 }}>
+                          {clv >= 0 ? "+" : ""}{clv.toFixed(1)}%
+                        </div>
+                      )}
+                    </div>
+                    <input
+                      value={closingValues[i]}
+                      onChange={e => updateClosing(i, e.target.value)}
+                      placeholder="e.g. 1.90 — fetched automatically via Odds API"
+                      type="number" step="0.01" min="1"
+                      style={{
+                        width: "100%", padding: "9px 12px",
+                        borderRadius: "var(--r-s)",
+                        border: "1px solid var(--line-2)",
+                        background: "var(--bg-3)",
+                        color: "var(--text)", fontFamily: "var(--mono)", fontSize: 13,
+                        outline: "none",
+                      }}
+                    />
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+
+          {/* Save */}
           <button
             className="btn accent"
             style={{ width: "100%", justifyContent: "center" }}
-            onClick={() => onSave(closingOdds ? parseFloat(closingOdds) : null)}
+            onClick={() => {
+              // For simplicity save first selection's closing; real DB would save per selection
+              onSave(closingValues[0] ? parseFloat(closingValues[0]) : null);
+            }}
           >
             Save changes
           </button>
@@ -200,20 +184,14 @@ export function BetDrawer({ bet, onClose, onDelete, onSave }: BetDrawerProps) {
                 Remove this bet?
               </span>
               <button className="btn sm" onClick={() => setConfirmDelete(false)}>Cancel</button>
-              <button
-                className="btn sm"
-                onClick={onDelete}
-                style={{ borderColor: "#e05555", color: "#e05555", background: "rgba(224,85,85,0.06)" }}
-              >
+              <button className="btn sm" onClick={onDelete}
+                style={{ borderColor: "#e05555", color: "#e05555", background: "rgba(224,85,85,0.06)" }}>
                 Yes, delete
               </button>
             </div>
           ) : (
-            <button
-              className="btn sm"
-              onClick={() => setConfirmDelete(true)}
-              style={{ color: "var(--text-3)", width: "100%", justifyContent: "center" }}
-            >
+            <button className="btn sm" onClick={() => setConfirmDelete(true)}
+              style={{ color: "var(--text-3)", width: "100%", justifyContent: "center" }}>
               🗑 Remove bet
             </button>
           )}

@@ -236,17 +236,17 @@ export default function DashboardPage() {
             <table style={{ width: "100%", borderCollapse: "collapse" }}>
               <thead>
                 <tr>
-                  {["Date", "Match", "Market", "Odds", "CLV", "Stake", "Result", "P&L"].map((h, i) => (
+                  {["Date", "Bet", "Odds", "CLV", "Stake", "Result", "P&L"].map((h, i) => (
                     <th key={h} style={{
                       padding: "10px var(--pad)",
                       fontFamily: "var(--mono)", fontSize: 10, fontWeight: 500,
                       letterSpacing: "0.14em", textTransform: "uppercase",
                       color: h === "CLV" ? "var(--accent)" : "var(--text-3)",
-                      textAlign: i >= 3 ? "right" : "left",
+                      textAlign: i >= 2 ? "right" : "left",
                       whiteSpace: "nowrap",
                     }}>
                       {h === "CLV"
-                        ? <span title="Closing Line Value — how your odds compared to the market at kickoff. Positive = you beat the market." style={{ cursor: "help", borderBottom: "1px dashed var(--text-4)" }}>CLV ⓘ</span>
+                        ? <span title="Closing Line Value — how your odds compared to the market at kickoff." style={{ cursor: "help", borderBottom: "1px dashed var(--text-4)" }}>CLV ⓘ</span>
                         : h}
                     </th>
                   ))}
@@ -254,57 +254,7 @@ export default function DashboardPage() {
               </thead>
               <tbody>
                 {bets.map((bet, i) => (
-                  <tr
-                    key={i}
-                    onClick={() => setSelectedBet(bet)}
-                    style={{ borderTop: "1px solid var(--line)", height: "var(--row-h)", transition: "background 0.1s", cursor: "pointer" }}
-                    onMouseEnter={e => (e.currentTarget as HTMLElement).style.background = "rgba(255,255,255,0.035)"}
-                    onMouseLeave={e => (e.currentTarget as HTMLElement).style.background = "transparent"}
-                  >
-                    <td style={{ padding: "0 var(--pad)", fontFamily: "var(--mono)", fontSize: 11.5, color: "var(--text-3)", whiteSpace: "nowrap" }}>{bet.date}</td>
-                    <td style={{ padding: "0 var(--pad)", whiteSpace: "nowrap" }}>
-                      <span style={{ marginRight: 6 }}>{bet.sport}</span>
-                      <span style={{ fontSize: 13.5, fontWeight: 500 }}>{bet.match}</span>
-                    </td>
-                    <td style={{ padding: "0 var(--pad)" }}>
-                      <span className="tag" style={{ marginRight: 4 }}>{bet.market}</span>
-                      {bet.line && <span className="tag">{bet.line}</span>}
-                    </td>
-                    <td style={{ padding: "0 var(--pad)", textAlign: "right" }}>
-                      <span className="num" style={{ fontSize: 13 }}>{bet.odds.toFixed(2)}</span>
-                    </td>
-                    <td style={{ padding: "0 var(--pad)", textAlign: "right" }}>
-                      {bet.closingOdds ? (() => {
-                        const clv = ((bet.odds / bet.closingOdds) - 1) * 100;
-                        return (
-                          <div>
-                            <div className={`num ${clv >= 0 ? "pos" : "neg"}`} style={{ fontSize: 12.5, fontWeight: 600 }}>
-                              {clv >= 0 ? "+" : ""}{clv.toFixed(1)}%
-                            </div>
-                            <div style={{ color: "var(--text-4)", fontFamily: "var(--mono)", fontSize: 10, marginTop: 1 }}>
-                              cl. {bet.closingOdds.toFixed(2)}
-                            </div>
-                          </div>
-                        );
-                      })() : (
-                        <span style={{ color: "var(--text-4)", fontFamily: "var(--mono)", fontSize: 12 }}>—</span>
-                      )}
-                    </td>
-                    <td style={{ padding: "0 var(--pad)", textAlign: "right" }}>
-                      <span className="num" style={{ fontSize: 13, color: "var(--text-2)" }}>{bet.stake}u</span>
-                    </td>
-                    <td style={{ padding: "0 var(--pad)", textAlign: "center" }}>
-                      <span className={`result-pill ${bet.result}`}>{bet.result}</span>
-                    </td>
-                    <td style={{ padding: "0 var(--pad)", textAlign: "right" }}>
-                      {bet.profit === null
-                        ? <span style={{ color: "var(--text-4)", fontFamily: "var(--mono)", fontSize: 13 }}>—</span>
-                        : <span className={`num ${bet.profit > 0 ? "pos glow" : bet.profit < 0 ? "neg" : ""}`} style={{ fontSize: 13, fontWeight: 500 }}>
-                            {bet.profit > 0 ? "+" : ""}{bet.profit === 0 ? "—" : bet.profit}
-                          </span>
-                      }
-                    </td>
-                  </tr>
+                  <BetRow key={i} bet={bet} onClick={() => setSelectedBet(bet)} />
                 ))}
               </tbody>
             </table>
@@ -314,6 +264,174 @@ export default function DashboardPage() {
           </div>
         </div>
       </div>
+    </>
+  );
+}
+
+// ── BetRow ──────────────────────────────────────────────────
+
+function BetRow({ bet, onClick }: { bet: Bet; onClick: () => void }) {
+  const [expanded, setExpanded] = useState(false);
+  const isMulti = bet.betType !== "Single";
+  const sel0 = bet.selections[0];
+
+  // Combined odds
+  const combinedOdds = bet.selections.reduce((acc, s) => acc * s.odds, 1);
+
+  // CLV — only meaningful for singles
+  const clv = !isMulti && sel0.closingOdds
+    ? ((sel0.odds / sel0.closingOdds) - 1) * 100
+    : null;
+
+  const betTypeColor: Record<string, string> = {
+    Double: "#5ad1ff",
+    Treble: "#e6b23a",
+    Accumulator: "#b48cff",
+  };
+
+  return (
+    <>
+      <tr
+        onClick={() => { if (isMulti) setExpanded(e => !e); else onClick(); }}
+        style={{ borderTop: "1px solid var(--line)", height: "var(--row-h)", transition: "background 0.1s", cursor: "pointer" }}
+        onMouseEnter={e => (e.currentTarget as HTMLElement).style.background = "rgba(255,255,255,0.035)"}
+        onMouseLeave={e => (e.currentTarget as HTMLElement).style.background = "transparent"}
+      >
+        {/* Date */}
+        <td style={{ padding: "0 var(--pad)", fontFamily: "var(--mono)", fontSize: 11.5, color: "var(--text-3)", whiteSpace: "nowrap" }}>
+          {bet.date}
+        </td>
+
+        {/* Bet description */}
+        <td style={{ padding: "0 var(--pad)" }}>
+          {isMulti ? (
+            <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+              <span style={{
+                fontFamily: "var(--mono)", fontSize: 10.5, padding: "2px 7px",
+                borderRadius: 4,
+                background: betTypeColor[bet.betType] + "18",
+                border: `1px solid ${betTypeColor[bet.betType]}44`,
+                color: betTypeColor[bet.betType],
+                whiteSpace: "nowrap",
+              }}>{bet.betType}</span>
+              <div>
+                <div style={{ fontSize: 13, fontWeight: 500, whiteSpace: "nowrap" }}>
+                  {bet.selections.map(s => s.sport).join(" · ")}
+                  {" "}
+                  <span style={{ color: "var(--text-3)", fontWeight: 400 }}>
+                    {bet.selections.map(s => s.match.split(" – ")[0]).join(" + ")}
+                  </span>
+                </div>
+                <div style={{ color: "var(--text-4)", fontFamily: "var(--mono)", fontSize: 10, marginTop: 1 }}>
+                  {bet.selections.length} selections · click to {expanded ? "collapse" : "expand"}
+                </div>
+              </div>
+              <span style={{ color: "var(--text-4)", fontSize: 11, marginLeft: 2 }}>{expanded ? "▲" : "▼"}</span>
+            </div>
+          ) : (
+            <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+              <span>{sel0.sport}</span>
+              <div>
+                <div style={{ fontSize: 13.5, fontWeight: 500, whiteSpace: "nowrap" }}>{sel0.match}</div>
+                <div style={{ color: "var(--text-3)", fontFamily: "var(--mono)", fontSize: 10.5, marginTop: 1 }}>
+                  {sel0.market}{sel0.line ? ` · ${sel0.line}` : ""}
+                </div>
+              </div>
+            </div>
+          )}
+        </td>
+
+        {/* Odds */}
+        <td style={{ padding: "0 var(--pad)", textAlign: "right", whiteSpace: "nowrap" }}>
+          {isMulti ? (
+            <div>
+              <div className="num pos glow" style={{ fontSize: 13, fontWeight: 600 }}>{combinedOdds.toFixed(2)}</div>
+              <div style={{ color: "var(--text-4)", fontFamily: "var(--mono)", fontSize: 10, marginTop: 1 }}>
+                {bet.selections.map(s => s.odds.toFixed(2)).join(" × ")}
+              </div>
+            </div>
+          ) : (
+            <span className="num" style={{ fontSize: 13 }}>{sel0.odds.toFixed(2)}</span>
+          )}
+        </td>
+
+        {/* CLV */}
+        <td style={{ padding: "0 var(--pad)", textAlign: "right" }}>
+          {clv !== null ? (
+            <div>
+              <div className={`num ${clv >= 0 ? "pos" : "neg"}`} style={{ fontSize: 12.5, fontWeight: 600 }}>
+                {clv >= 0 ? "+" : ""}{clv.toFixed(1)}%
+              </div>
+              <div style={{ color: "var(--text-4)", fontFamily: "var(--mono)", fontSize: 10, marginTop: 1 }}>
+                cl. {sel0.closingOdds!.toFixed(2)}
+              </div>
+            </div>
+          ) : (
+            <span style={{ color: "var(--text-4)", fontFamily: "var(--mono)", fontSize: 12 }}>—</span>
+          )}
+        </td>
+
+        {/* Stake */}
+        <td style={{ padding: "0 var(--pad)", textAlign: "right" }}>
+          <span className="num" style={{ fontSize: 13, color: "var(--text-2)" }}>{bet.stake}u</span>
+        </td>
+
+        {/* Result */}
+        <td style={{ padding: "0 var(--pad)", textAlign: "center" }}>
+          <span className={`result-pill ${bet.result}`}>{bet.result}</span>
+        </td>
+
+        {/* P&L */}
+        <td style={{ padding: "0 var(--pad)", textAlign: "right" }}>
+          {bet.profit === null
+            ? <span style={{ color: "var(--text-4)", fontFamily: "var(--mono)", fontSize: 13 }}>—</span>
+            : <span className={`num ${bet.profit > 0 ? "pos glow" : bet.profit < 0 ? "neg" : ""}`} style={{ fontSize: 13, fontWeight: 500 }}>
+                {bet.profit > 0 ? "+" : ""}{bet.profit === 0 ? "—" : bet.profit}
+              </span>
+          }
+        </td>
+      </tr>
+
+      {/* Expanded selections for multi-bets */}
+      {isMulti && expanded && bet.selections.map((sel, si) => (
+        <tr
+          key={si}
+          style={{ background: "rgba(255,255,255,0.012)", borderTop: "1px solid var(--line)" }}
+        >
+          <td style={{ padding: "8px var(--pad)", paddingLeft: "calc(var(--pad) + 12px)" }}>
+            <div style={{ width: 1, height: "100%", background: "var(--line-2)", marginLeft: 4 }} />
+          </td>
+          <td style={{ padding: "8px 0" }}>
+            <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+              <span style={{ color: "var(--text-4)", fontFamily: "var(--mono)", fontSize: 10, minWidth: 14, textAlign: "right" }}>{si + 1}</span>
+              <span style={{ fontSize: 14 }}>{sel.sport}</span>
+              <div>
+                <div style={{ fontSize: 13, fontWeight: 500 }}>{sel.match}</div>
+                <div style={{ color: "var(--text-3)", fontFamily: "var(--mono)", fontSize: 10.5, marginTop: 1 }}>
+                  {sel.market}{sel.line ? ` · ${sel.line}` : ""}
+                </div>
+              </div>
+            </div>
+          </td>
+          <td style={{ padding: "8px var(--pad)", textAlign: "right" }}>
+            <span className="num pos" style={{ fontSize: 13 }}>{sel.odds.toFixed(2)}</span>
+          </td>
+          <td style={{ padding: "8px var(--pad)", textAlign: "right" }}>
+            {sel.closingOdds ? (() => {
+              const c = ((sel.odds / sel.closingOdds) - 1) * 100;
+              return (
+                <div>
+                  <div className={`num ${c >= 0 ? "pos" : "neg"}`} style={{ fontSize: 11, fontWeight: 600 }}>
+                    {c >= 0 ? "+" : ""}{c.toFixed(1)}%
+                  </div>
+                  <div style={{ color: "var(--text-4)", fontFamily: "var(--mono)", fontSize: 10 }}>cl. {sel.closingOdds.toFixed(2)}</div>
+                </div>
+              );
+            })() : <span style={{ color: "var(--text-4)", fontFamily: "var(--mono)", fontSize: 11 }}>—</span>}
+          </td>
+          <td colSpan={3} />
+        </tr>
+      ))}
     </>
   );
 }

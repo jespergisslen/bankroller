@@ -13,11 +13,11 @@ export const BANKROLL_CURVE = (() => {
 export const BANKROLL_NOW = BANKROLL_CURVE[BANKROLL_CURVE.length - 1];
 
 export const DASH_KPIS = [
-  { k: "Bankroll",    v: BANKROLL_NOW.toLocaleString("sv-SE") + " kr", d: "+24.8%", up: true,  sub: "all time" },
-  { k: "Yield",       v: "+8.4 %",  d: "+0.6",  up: true,  sub: "642 bets" },
-  { k: "Win rate",    v: "54.2 %",  d: "+1.1",  up: true,  sub: "348 / 642" },
-  { k: "CLV",         v: "+2.1 %",  d: "+0.3",  up: true,  sub: "closing line" },
-  { k: "Open exp.",   v: "1 240 kr", d: "5 bets", up: null, sub: "live" },
+  { k: "Bankroll",  v: BANKROLL_NOW.toLocaleString("sv-SE") + " kr", d: "+24.8%", up: true,  sub: "all time" },
+  { k: "Yield",     v: "+8.4 %",   d: "+0.6",  up: true,  sub: "642 bets" },
+  { k: "Win rate",  v: "54.2 %",   d: "+1.1",  up: true,  sub: "348 / 642" },
+  { k: "CLV",       v: "+2.1 %",   d: "+0.3",  up: true,  sub: "closing line" },
+  { k: "Open exp.", v: "1 240 kr", d: "5 bets", up: null,  sub: "live" },
 ];
 
 export const YIELD_SPORT = [
@@ -36,20 +36,59 @@ export const YIELD_MARKET = [
   { name: "Over / Under",   val: -1.9, vol: 56  },
 ];
 
-export type Bet = {
-  date: string; match: string; sport: string; market: string; line: string;
-  odds: number; closingOdds: number | null; stake: number; result: string; profit: number | null;
+export type Selection = {
+  sport: string;
+  match: string;
+  market: string;
+  line: string;
+  odds: number;
+  closingOdds: number | null;
 };
 
+export type Bet = {
+  date: string;
+  betType: "Single" | "Double" | "Treble" | "Accumulator";
+  stake: number;
+  result: string;
+  profit: number | null;
+  selections: Selection[];
+};
+
+// Helpers
+const single = (
+  date: string, sport: string, match: string,
+  market: string, line: string, odds: number,
+  closingOdds: number | null, stake: number, result: string, profit: number | null
+): Bet => ({
+  date, betType: "Single", stake, result, profit,
+  selections: [{ sport, match, market, line, odds, closingOdds }],
+});
+
 export const RECENT_BETS: Bet[] = [
-  { date: "04 Jun", match: "Arsenal – Man City",   sport: "⚽", market: "Asian Handicap", line: "+0.5 ARS",      odds: 1.92, closingOdds: null,  stake: 2.0, result: "open", profit: null },
-  { date: "04 Jun", match: "Sinner – Alcaraz",     sport: "🎾", market: "Over / Under",   line: "Over 38.5 gms", odds: 1.85, closingOdds: null,  stake: 1.5, result: "open", profit: null },
-  { date: "03 Jun", match: "Liverpool – Chelsea",  sport: "⚽", market: "Top goalscorer", line: "Salah anytime", odds: 2.30, closingOdds: 2.05,  stake: 2.0, result: "win",  profit: 2.60 },
-  { date: "03 Jun", match: "PGA — Memorial",       sport: "⛳", market: "1X2",            line: "Scheffler top 5",odds: 2.10,closingOdds: 2.00,  stake: 1.5, result: "win",  profit: 1.65 },
-  { date: "02 Jun", match: "Solvalla V75-4",       sport: "🐎", market: "1X2",            line: "Don Fanucci",   odds: 3.40, closingOdds: 4.20,  stake: 1.0, result: "loss", profit: -1.0 },
-  { date: "02 Jun", match: "Real – Betis",         sport: "⚽", market: "BTTS",           line: "Yes",           odds: 1.75, closingOdds: 1.68,  stake: 2.0, result: "win",  profit: 1.50 },
-  { date: "01 Jun", match: "Inter – Napoli",       sport: "⚽", market: "Bookings",       line: "Over 4.5",      odds: 1.95, closingOdds: 1.88,  stake: 1.5, result: "loss", profit: -1.5 },
-  { date: "01 Jun", match: "Zverev – Medvedev",    sport: "🎾", market: "Asian Handicap", line: "-1.5 sets ZVE", odds: 2.05, closingOdds: 1.82,  stake: 1.5, result: "win",  profit: 1.58 },
-  { date: "31 May", match: "Brighton – Spurs",     sport: "⚽", market: "Over / Under",   line: "Over 2.5",      odds: 1.88, closingOdds: 1.85,  stake: 2.0, result: "win",  profit: 1.76 },
-  { date: "31 May", match: "Åby V64-2",            sport: "🐎", market: "1X2",            line: "Global Withdraw",odds: 2.60,closingOdds: 2.75,  stake: 1.0, result: "void", profit: 0    },
+  single("04 Jun", "⚽", "Arsenal – Man City",  "Asian Handicap", "+0.5 ARS",       1.92, null, 2.0, "open", null),
+  single("04 Jun", "🎾", "Sinner – Alcaraz",    "Over / Under",   "Over 38.5 gms",  1.85, null, 1.5, "open", null),
+  // Double: Liverpool BTTS + Real Betis BTTS
+  {
+    date: "03 Jun", betType: "Double", stake: 1.0, result: "win", profit: 3.10,
+    selections: [
+      { sport: "⚽", match: "Liverpool – Chelsea",  market: "BTTS",           line: "Yes",           odds: 1.78, closingOdds: 1.72 },
+      { sport: "⚽", match: "Real – Betis",         market: "BTTS",           line: "Yes",           odds: 1.75, closingOdds: 1.68 },
+    ],
+  },
+  single("03 Jun", "⚽", "Liverpool – Chelsea",  "Top goalscorer", "Salah anytime",  2.30, 2.05, 2.0, "win",  2.60),
+  single("03 Jun", "⛳", "PGA — Memorial",        "1X2",            "Scheffler top 5",2.10, 2.00, 1.5, "win",  1.65),
+  // Treble: three football 1X2s
+  {
+    date: "02 Jun", betType: "Treble", stake: 0.5, result: "loss", profit: -0.5,
+    selections: [
+      { sport: "⚽", match: "Man City – Newcastle",  market: "1X2", line: "Man City",  odds: 1.55, closingOdds: 1.50 },
+      { sport: "⚽", match: "PSG – Lyon",            market: "1X2", line: "PSG",       odds: 1.62, closingOdds: 1.58 },
+      { sport: "⚽", match: "Bayern – Dortmund",     market: "1X2", line: "Bayern",    odds: 1.70, closingOdds: 1.65 },
+    ],
+  },
+  single("02 Jun", "🐎", "Solvalla V75-4",        "1X2",            "Don Fanucci",    3.40, 4.20, 1.0, "loss", -1.0),
+  single("01 Jun", "⚽", "Inter – Napoli",         "Bookings",       "Over 4.5",       1.95, 1.88, 1.5, "loss", -1.5),
+  single("01 Jun", "🎾", "Zverev – Medvedev",      "Asian Handicap", "-1.5 sets ZVE",  2.05, 1.82, 1.5, "win",  1.58),
+  single("31 May", "⚽", "Brighton – Spurs",        "Over / Under",   "Over 2.5",       1.88, 1.85, 2.0, "win",  1.76),
+  single("31 May", "🐎", "Åby V64-2",              "1X2",            "Global Withdraw", 2.60, 2.75, 1.0, "void", 0),
 ];
