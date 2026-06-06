@@ -292,7 +292,7 @@ function BetRow({ bet, onClick }: { bet: Bet; onClick: () => void }) {
   return (
     <>
       <tr
-        onClick={() => { if (isMulti) setExpanded(e => !e); else onClick(); }}
+        onClick={onClick}
         style={{ borderTop: "1px solid var(--line)", height: "var(--row-h)", transition: "background 0.1s", cursor: "pointer" }}
         onMouseEnter={e => (e.currentTarget as HTMLElement).style.background = "rgba(255,255,255,0.035)"}
         onMouseLeave={e => (e.currentTarget as HTMLElement).style.background = "transparent"}
@@ -325,10 +325,20 @@ function BetRow({ bet, onClick }: { bet: Bet; onClick: () => void }) {
                   }}>{bet.betType}</span>
                 </div>
                 <div style={{ color: "var(--text-4)", fontFamily: "var(--mono)", fontSize: 10, marginTop: 1 }}>
-                  {bet.selections.length} selections · click to {expanded ? "collapse" : "expand"}
+                  {bet.selections.length} selections
                 </div>
               </div>
-              <span style={{ color: "var(--text-4)", fontSize: 11, marginLeft: 2 }}>{expanded ? "▲" : "▼"}</span>
+              <button
+                onClick={e => { e.stopPropagation(); setExpanded(v => !v); }}
+                style={{
+                  background: "none", border: "none", cursor: "pointer",
+                  color: "var(--text-4)", fontSize: 11, padding: "4px 6px",
+                  borderRadius: "var(--r-s)", transition: "background 0.1s",
+                }}
+                onMouseEnter={e => (e.currentTarget as HTMLElement).style.background = "rgba(255,255,255,0.06)"}
+                onMouseLeave={e => (e.currentTarget as HTMLElement).style.background = "none"}
+                title={expanded ? "Collapse" : "Expand selections"}
+              >{expanded ? "▲" : "▼"}</button>
             </div>
           ) : (
             <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
