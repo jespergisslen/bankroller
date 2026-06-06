@@ -36,7 +36,12 @@ export const YIELD_MARKET = [
   { name: "Over / Under",   val: -1.9, vol: 56  },
 ];
 
-export const RECENT_BETS = [
+export type Bet = {
+  date: string; match: string; sport: string; market: string; line: string;
+  odds: number; closingOdds: number | null; stake: number; result: string; profit: number | null;
+};
+
+export const RECENT_BETS: Bet[] = [
   { date: "04 Jun", match: "Arsenal – Man City",   sport: "⚽", market: "Asian Handicap", line: "+0.5 ARS",      odds: 1.92, closingOdds: null,  stake: 2.0, result: "open", profit: null },
   { date: "04 Jun", match: "Sinner – Alcaraz",     sport: "🎾", market: "Over / Under",   line: "Over 38.5 gms", odds: 1.85, closingOdds: null,  stake: 1.5, result: "open", profit: null },
   { date: "03 Jun", match: "Liverpool – Chelsea",  sport: "⚽", market: "Top goalscorer", line: "Salah anytime", odds: 2.30, closingOdds: 2.05,  stake: 2.0, result: "win",  profit: 2.60 },

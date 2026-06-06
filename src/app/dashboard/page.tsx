@@ -3,20 +3,44 @@
 import { useState } from "react";
 import { Sparkline } from "@/components/Sparkline";
 import { LogBetModal } from "@/components/LogBetModal";
-import { BANKROLL_CURVE, BANKROLL_NOW, DASH_KPIS, YIELD_SPORT, YIELD_MARKET, RECENT_BETS } from "@/lib/mockData";
+import { BetDrawer } from "@/components/BetDrawer";
+import { BANKROLL_CURVE, BANKROLL_NOW, DASH_KPIS, YIELD_SPORT, YIELD_MARKET, RECENT_BETS, type Bet } from "@/lib/mockData";
+
 
 const RANGES = ["1M", "3M", "6M", "YTD", "ALL"];
 
 export default function DashboardPage() {
   const [range, setRange] = useState("3M");
   const [showModal, setShowModal] = useState(false);
+  const [bets, setBets] = useState<Bet[]>(RECENT_BETS);
+  const [selectedBet, setSelectedBet] = useState<Bet | null>(null);
 
   const maxSport = Math.max(...YIELD_SPORT.map(s => Math.abs(s.val)));
   const maxMarket = Math.max(...YIELD_MARKET.map(m => Math.abs(m.val)));
 
+  const handleSave = (closingOdds: number | null) => {
+    if (!selectedBet) return;
+    setBets(prev => prev.map(b => b === selectedBet ? { ...b, closingOdds } : b));
+    setSelectedBet(null);
+  };
+
+  const handleDelete = () => {
+    if (!selectedBet) return;
+    setBets(prev => prev.filter(b => b !== selectedBet));
+    setSelectedBet(null);
+  };
+
   return (
     <>
       {showModal && <LogBetModal onClose={() => setShowModal(false)} />}
+      {selectedBet && (
+        <BetDrawer
+          bet={selectedBet}
+          onClose={() => setSelectedBet(null)}
+          onSave={handleSave}
+          onDelete={handleDelete}
+        />
+      )}
 
       <div className="fade-in">
         {/* Page head */}
@@ -229,11 +253,12 @@ export default function DashboardPage() {
                 </tr>
               </thead>
               <tbody>
-                {RECENT_BETS.map((bet, i) => (
+                {bets.map((bet, i) => (
                   <tr
                     key={i}
-                    style={{ borderTop: "1px solid var(--line)", height: "var(--row-h)", transition: "background 0.1s" }}
-                    onMouseEnter={e => (e.currentTarget as HTMLElement).style.background = "rgba(255,255,255,0.022)"}
+                    onClick={() => setSelectedBet(bet)}
+                    style={{ borderTop: "1px solid var(--line)", height: "var(--row-h)", transition: "background 0.1s", cursor: "pointer" }}
+                    onMouseEnter={e => (e.currentTarget as HTMLElement).style.background = "rgba(255,255,255,0.035)"}
                     onMouseLeave={e => (e.currentTarget as HTMLElement).style.background = "transparent"}
                   >
                     <td style={{ padding: "0 var(--pad)", fontFamily: "var(--mono)", fontSize: 11.5, color: "var(--text-3)", whiteSpace: "nowrap" }}>{bet.date}</td>
@@ -285,7 +310,7 @@ export default function DashboardPage() {
             </table>
           </div>
           <div style={{ padding: "12px var(--pad)", borderTop: "1px solid var(--line)", color: "var(--text-3)", fontFamily: "var(--mono)", fontSize: 11.5 }}>
-            Showing 10 of 642 bets
+            Showing {bets.length} of 642 bets
           </div>
         </div>
       </div>
