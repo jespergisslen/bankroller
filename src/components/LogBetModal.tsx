@@ -213,7 +213,7 @@ export function LogBetModal({ onClose }: LogBetModalProps) {
                   color: "var(--text-3)",
                   lineHeight: 1.5,
                 }}>
-                  The market odds at kickoff — Pinnacle SP is the gold standard. Fill in later if you don&apos;t know yet.
+                  The market odds at kickoff — we&apos;ll fetch this automatically via Odds API. You can also fill it in manually.
                 </div>
               </div>
             </div>
