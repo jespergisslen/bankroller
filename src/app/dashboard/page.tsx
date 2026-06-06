@@ -306,21 +306,23 @@ function BetRow({ bet, onClick }: { bet: Bet; onClick: () => void }) {
         <td style={{ padding: "0 var(--pad)" }}>
           {isMulti ? (
             <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
-              <span style={{
-                fontFamily: "var(--mono)", fontSize: 10.5, padding: "2px 7px",
-                borderRadius: 4,
-                background: betTypeColor[bet.betType] + "18",
-                border: `1px solid ${betTypeColor[bet.betType]}44`,
-                color: betTypeColor[bet.betType],
-                whiteSpace: "nowrap",
-              }}>{bet.betType}</span>
               <div>
-                <div style={{ fontSize: 13, fontWeight: 500, whiteSpace: "nowrap" }}>
-                  {bet.selections.map(s => s.sport).join(" · ")}
-                  {" "}
-                  <span style={{ color: "var(--text-3)", fontWeight: 400 }}>
-                    {bet.selections.map(s => s.match.split(" – ")[0]).join(" + ")}
+                <div style={{ display: "flex", alignItems: "center", gap: 6, whiteSpace: "nowrap" }}>
+                  <span style={{ fontSize: 13, fontWeight: 500 }}>
+                    {bet.selections.map(s => s.sport).join(" · ")}
+                    {" "}
+                    <span style={{ color: "var(--text-3)", fontWeight: 400 }}>
+                      {bet.selections.map(s => s.match.split(" – ")[0]).join(" + ")}
+                    </span>
                   </span>
+                  <span style={{
+                    fontFamily: "var(--mono)", fontSize: 10, padding: "1px 6px",
+                    borderRadius: 4,
+                    background: betTypeColor[bet.betType] + "18",
+                    border: `1px solid ${betTypeColor[bet.betType]}44`,
+                    color: betTypeColor[bet.betType],
+                    flexShrink: 0,
+                  }}>{bet.betType}</span>
                 </div>
                 <div style={{ color: "var(--text-4)", fontFamily: "var(--mono)", fontSize: 10, marginTop: 1 }}>
                   {bet.selections.length} selections · click to {expanded ? "collapse" : "expand"}
