@@ -65,6 +65,7 @@ export function LogBetModal({ onClose, onSaved }: LogBetModalProps) {
   const [bookmaker, setBookmaker] = useState("");
   const [customBookmaker, setCustomBookmaker] = useState("");
   const [showCustomBookie, setShowCustomBookie] = useState(false);
+  const [referralLink, setReferralLink] = useState("");
   const [isPublic, setIsPublic] = useState(false);
   const [analysis, setAnalysis] = useState("");
   const [isMaxbet, setIsMaxbet] = useState(false);
@@ -80,6 +81,7 @@ export function LogBetModal({ onClose, onSaved }: LogBetModalProps) {
       betType,
       stake: parseFloat(stake),
       bookmaker: showCustomBookie ? customBookmaker : bookmaker,
+      referralLink,
       isPublic,
       analysis,
       isMaxbet,
@@ -343,6 +345,23 @@ export function LogBetModal({ onClose, onSaved }: LogBetModalProps) {
                     ))}
                   </div>
                 )}
+              </div>
+            </div>
+
+            {/* Referral / affiliate link (optional) */}
+            <div>
+              <div className="label" style={{ marginBottom: 8 }}>
+                Referral link <span style={{ color: "var(--text-4)", letterSpacing: 0, textTransform: "none", fontSize: 11 }}>(optional)</span>
+              </div>
+              <input
+                value={referralLink}
+                onChange={e => setReferralLink(e.target.value)}
+                placeholder="https://… — your affiliate / campaign link to this bet"
+                type="url"
+                style={inputStyle}
+              />
+              <div style={{ color: "var(--text-4)", fontFamily: "var(--mono)", fontSize: 10.5, marginTop: 6 }}>
+                If you publish this pick, readers can bet via your link.
               </div>
             </div>
 

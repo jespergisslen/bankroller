@@ -20,6 +20,7 @@ export async function fetchMyBets(): Promise<Bet[]> {
     result: b.result,
     profit: b.profit !== null ? Number(b.profit) : null,
     bookmaker: b.bookmaker,
+    referralLink: b.referral_link,
     isPublic: b.is_public,
     analysis: b.analysis,
     isMaxbet: b.is_maxbet,
@@ -41,6 +42,7 @@ export async function saveBet(params: {
   betType: Bet["betType"];
   stake: number;
   bookmaker: string;
+  referralLink?: string;
   isPublic: boolean;
   analysis: string;
   isMaxbet: boolean;
@@ -57,6 +59,7 @@ export async function saveBet(params: {
       bet_type: params.betType,
       stake: params.stake,
       bookmaker: params.bookmaker || null,
+      referral_link: params.referralLink || null,
       is_public: params.isPublic,
       analysis: params.analysis || null,
       is_maxbet: params.isMaxbet,

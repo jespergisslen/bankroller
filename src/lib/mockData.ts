@@ -53,6 +53,7 @@ export type Bet = {
   result: string;
   profit: number | null;
   bookmaker?: string | null;
+  referralLink?: string | null;
   isPublic?: boolean;
   analysis?: string | null;
   isMaxbet?: boolean;
