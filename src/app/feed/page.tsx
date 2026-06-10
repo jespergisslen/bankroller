@@ -4,6 +4,7 @@ import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { useCurrency } from "@/lib/currencyContext";
 import { createClient } from "@/lib/supabase";
+import { fetchPublicBets, type PublicTip } from "@/lib/bets";
 
 const TIPSTERS = [
   { id: "vh",  name: "ValueHunter", initials: "VH", color: "#00e5a0", verified: true,  yield: 12.4, tips: 612  },
@@ -88,21 +89,33 @@ const FEED = [
 
 const SPORTS_FILTER = ["All", "⚽ Football", "🎾 Tennis", "🐎 Trotting", "🏀 Basketball"];
 
+type FeedTip = {
+  tipster: { name: string; initials: string; color: string; verified: boolean };
+  sport: string; league: string; match: string; date: string;
+  analysis: string; pick: string; odds: number; stake: number;
+  bookmaker: string; referralLink?: string | null; postedYield: number | null;
+  posted: string;
+};
+
 export default function FeedPage() {
   const { stakeLabel } = useCurrency();
   const router = useRouter();
   const [sportFilter, setSportFilter] = useState("All");
   const [isLoggedIn, setIsLoggedIn] = useState(false);
+  const [realTips, setRealTips] = useState<PublicTip[]>([]);
 
   useEffect(() => {
     createClient().auth.getUser().then(({ data }) => setIsLoggedIn(!!data.user));
+    fetchPublicBets().then(setRealTips);
   }, []);
 
   const requireAuth = () => {
     router.push(isLoggedIn ? "/dashboard" : "/register");
   };
 
-  const filtered = FEED.filter(tip =>
+  // Real published tips first, then the example tips
+  const allTips: FeedTip[] = [...realTips, ...FEED];
+  const filtered = allTips.filter(tip =>
     sportFilter === "All" || tip.sport === sportFilter.split(" ")[0]
   );
 
@@ -205,11 +218,11 @@ export default function FeedPage() {
 }
 
 function FeedRow({ tip, stakeLabel, isLast }: {
-  tip: typeof FEED[0];
+  tip: FeedTip;
   stakeLabel: string;
   isLast: boolean;
 }) {
-  const bookieUrl = BOOKIE_LINKS[tip.bookmaker];
+  const bookieUrl = tip.referralLink || BOOKIE_LINKS[tip.bookmaker] || "#";
   const stakeDisplay = `${tip.stake}${stakeLabel === "u" ? "u" : " " + stakeLabel}`;
 
   return (
@@ -296,11 +309,19 @@ function FeedRow({ tip, stakeLabel, isLast }: {
 
       {/* Yield badge */}
       <div style={{ textAlign: "right", flexShrink: 0 }}>
-        <div className="label" style={{ marginBottom: 6 }}>verified yield</div>
-        <div className="num pos glow" style={{ fontSize: 22, fontWeight: 600, letterSpacing: "-0.02em" }}>
-          +{tip.postedYield}%
-        </div>
-
+        {tip.postedYield !== null ? (
+          <>
+            <div className="label" style={{ marginBottom: 6 }}>verified yield</div>
+            <div className="num pos glow" style={{ fontSize: 22, fontWeight: 600, letterSpacing: "-0.02em" }}>
+              +{tip.postedYield}%
+            </div>
+          </>
+        ) : (
+          <span style={{
+            fontFamily: "var(--mono)", fontSize: 10, padding: "2px 7px", borderRadius: 4,
+            background: "color-mix(in oklch, var(--accent) 12%, transparent)", color: "var(--accent)",
+          }}>NEW</span>
+        )}
       </div>
     </div>
   );
