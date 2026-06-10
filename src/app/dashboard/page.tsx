@@ -415,9 +415,12 @@ function BetRow({ bet, onClick }: { bet: Bet; onClick: () => void }) {
             </div>
           </div>
         ) : (
-          <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
-            <span>{sel0.sport}</span>
-            <div>
+          <div style={{ display: "flex", alignItems: "center", gap: 14 }}>
+            <span style={{
+              fontFamily: "var(--mono)", fontSize: 11, color: "var(--text-3)",
+              minWidth: 68, flexShrink: 0,
+            }}>{sel0.sport}</span>
+            <div style={{ borderLeft: "1px solid var(--line)", paddingLeft: 14 }}>
               <div style={{ fontSize: 13.5, fontWeight: 500, whiteSpace: "nowrap" }}>{sel0.match}</div>
               <div style={{ color: "var(--text-3)", fontFamily: "var(--mono)", fontSize: 10.5, marginTop: 1 }}>
                 {sel0.market}{sel0.line ? ` · ${sel0.line}` : ""}
