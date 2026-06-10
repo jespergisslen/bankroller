@@ -46,11 +46,16 @@ export type Selection = {
 };
 
 export type Bet = {
+  id?: string;
   date: string;
   betType: "Single" | "Double" | "Treble" | "Accumulator";
   stake: number;
   result: string;
   profit: number | null;
+  bookmaker?: string | null;
+  isPublic?: boolean;
+  analysis?: string | null;
+  isMaxbet?: boolean;
   selections: Selection[];
 };
 

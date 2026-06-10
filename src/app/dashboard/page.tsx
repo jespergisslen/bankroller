@@ -1,26 +1,63 @@
 "use client";
 
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, useMemo } from "react";
 import { useRouter } from "next/navigation";
 import { Sparkline } from "@/components/Sparkline";
 import { LogBetModal } from "@/components/LogBetModal";
 import { BetDrawer } from "@/components/BetDrawer";
-import { BANKROLL_CURVE, BANKROLL_NOW, DASH_KPIS, YIELD_SPORT, YIELD_MARKET, type Bet } from "@/lib/mockData";
+import { type Bet } from "@/lib/mockData";
 import { fetchMyBets, updateClosingOdds, deleteBet } from "@/lib/bets";
 import { createClient } from "@/lib/supabase";
+import { computeStats } from "@/lib/stats";
+import { useCurrency } from "@/lib/currencyContext";
 
 const RANGES = ["1M", "3M", "6M", "YTD", "ALL"];
 
 export default function DashboardPage() {
   const router = useRouter();
+  const { format } = useCurrency();
   const [range, setRange] = useState("3M");
   const [showModal, setShowModal] = useState(false);
   const [bets, setBets] = useState<Bet[]>([]);
   const [loadingBets, setLoadingBets] = useState(true);
   const [selectedBet, setSelectedBet] = useState<Bet | null>(null);
 
-  const maxSport = Math.max(...YIELD_SPORT.map(s => Math.abs(s.val)));
-  const maxMarket = Math.max(...YIELD_MARKET.map(m => Math.abs(m.val)));
+  const stats = useMemo(() => computeStats(bets), [bets]);
+  const maxSport = Math.max(1, ...stats.bySport.map(s => Math.abs(s.val)));
+  const maxMarket = Math.max(1, ...stats.byMarket.map(m => Math.abs(m.val)));
+
+  const kpis = [
+    {
+      k: "Net units",
+      v: `${stats.netUnits >= 0 ? "+" : ""}${stats.netUnits.toFixed(2)}u`,
+      up: stats.netUnits > 0 ? true : stats.netUnits < 0 ? false : null,
+      sub: stats.betCount > 0 ? `${stats.betCount} bets` : "no bets yet",
+    },
+    {
+      k: "Yield",
+      v: stats.yieldPct !== null ? `${stats.yieldPct >= 0 ? "+" : ""}${stats.yieldPct.toFixed(1)} %` : "—",
+      up: stats.yieldPct === null ? null : stats.yieldPct >= 0,
+      sub: `${stats.settledCount} settled`,
+    },
+    {
+      k: "Win rate",
+      v: stats.winRate !== null ? `${stats.winRate.toFixed(1)} %` : "—",
+      up: stats.winRate === null ? null : stats.winRate >= 50,
+      sub: stats.settledCount > 0 ? `${stats.winCount} / ${stats.settledCount}` : "—",
+    },
+    {
+      k: "CLV",
+      v: stats.avgClv !== null ? `${stats.avgClv >= 0 ? "+" : ""}${stats.avgClv.toFixed(1)} %` : "—",
+      up: stats.avgClv === null ? null : stats.avgClv >= 0,
+      sub: "closing line",
+    },
+    {
+      k: "Open exp.",
+      v: `${stats.openExposure.toFixed(2)}u`,
+      up: null,
+      sub: stats.openCount > 0 ? `${stats.openCount} open` : "none",
+    },
+  ];
 
   // Auth guard — redirect to login if not logged in
   useEffect(() => {
@@ -40,7 +77,7 @@ export default function DashboardPage() {
 
   const handleSave = async (closingOdds: number | null) => {
     if (!selectedBet) return;
-    const id = (selectedBet as any).id;
+    const id = selectedBet.id;
     if (id) {
       await updateClosingOdds(id, [{ index: 0, closingOdds }]);
     }
@@ -50,7 +87,7 @@ export default function DashboardPage() {
 
   const handleDelete = async () => {
     if (!selectedBet) return;
-    const id = (selectedBet as any).id;
+    const id = selectedBet.id;
     if (id) await deleteBet(id);
     await loadBets();
     setSelectedBet(null);
@@ -86,7 +123,7 @@ export default function DashboardPage() {
           className="d1 fade-in kpi-grid"
           style={{ display: "grid", gridTemplateColumns: "repeat(5, 1fr)", gap: 12, marginBottom: 20 }}
         >
-          {DASH_KPIS.map((kpi) => (
+          {kpis.map((kpi) => (
             <div
               key={kpi.k}
               className="panel"
@@ -120,16 +157,6 @@ export default function DashboardPage() {
                 {kpi.v}
               </div>
               <div style={{ marginTop: 8, display: "flex", alignItems: "center", gap: 6 }}>
-                {kpi.up !== null && (
-                  <span style={{
-                    fontFamily: "var(--mono)", fontSize: 10.5, padding: "2px 6px",
-                    borderRadius: 4,
-                    background: kpi.up ? "color-mix(in oklch, var(--accent) 12%, transparent)" : "rgba(255,255,255,0.04)",
-                    color: kpi.up ? "var(--accent)" : "var(--neg)",
-                  }}>
-                    {kpi.up ? "▲" : "▼"} {kpi.d}
-                  </span>
-                )}
                 <span style={{ color: "var(--text-3)", fontFamily: "var(--mono)", fontSize: 10.5 }}>{kpi.sub}</span>
               </div>
             </div>
@@ -144,7 +171,7 @@ export default function DashboardPage() {
               padding: "14px var(--pad)", borderBottom: "1px solid var(--line)",
               display: "flex", alignItems: "center", justifyContent: "space-between",
             }}>
-              <span style={{ fontWeight: 600, fontSize: 13 }}>Bankroll curve</span>
+              <span style={{ fontWeight: 600, fontSize: 13 }}>Profit curve</span>
               <div style={{ display: "flex", gap: 3, background: "var(--bg-1)", border: "1px solid var(--line)", borderRadius: "var(--r-s)", padding: 2 }}>
                 {RANGES.map(r => (
                   <button key={r} onClick={() => setRange(r)} style={{
@@ -159,23 +186,29 @@ export default function DashboardPage() {
             </div>
             <div style={{ padding: "var(--pad)" }}>
               <div style={{ display: "flex", alignItems: "baseline", gap: 12, marginBottom: 16 }}>
-                <span className="num pos glow" style={{ fontSize: 34, fontWeight: 500, letterSpacing: "-0.02em" }}>
-                  {BANKROLL_NOW.toLocaleString("sv-SE")} kr
+                <span className={`num ${stats.netUnits >= 0 ? "pos glow" : "neg"}`} style={{ fontSize: 34, fontWeight: 500, letterSpacing: "-0.02em" }}>
+                  {stats.netUnits >= 0 ? "+" : ""}{stats.netUnits.toFixed(2)}u
                 </span>
-                <span style={{ fontFamily: "var(--mono)", fontSize: 12, color: "var(--accent)" }}>+9 360 kr</span>
-                <span style={{ fontFamily: "var(--mono)", fontSize: 11, color: "var(--text-3)" }}>from 20 000 kr</span>
+                <span style={{ fontFamily: "var(--mono)", fontSize: 11, color: "var(--text-3)" }}>
+                  net profit · {stats.settledCount} settled
+                </span>
               </div>
-              <Sparkline data={BANKROLL_CURVE} height={196} />
-              <div style={{ display: "grid", gridTemplateColumns: "repeat(4,1fr)", gap: 0, marginTop: 16, borderTop: "1px solid var(--line)", paddingTop: 14 }}>
+              {stats.betCount === 0 ? (
+                <div style={{ height: 196, display: "flex", alignItems: "center", justifyContent: "center", color: "var(--text-4)", fontFamily: "var(--mono)", fontSize: 12, border: "1px dashed var(--line)", borderRadius: "var(--r-m)" }}>
+                  Your profit curve will appear here once you log bets
+                </div>
+              ) : (
+                <Sparkline data={stats.curve} height={196} />
+              )}
+              <div style={{ display: "grid", gridTemplateColumns: "repeat(3,1fr)", gap: 0, marginTop: 16, borderTop: "1px solid var(--line)", paddingTop: 14 }}>
                 {[
-                  { label: "Best day",  val: "+500 kr",   pos: true },
-                  { label: "Worst day", val: "−240 kr",   pos: false },
-                  { label: "Avg stake", val: "212 kr",    pos: null },
-                  { label: "Best run",  val: "7 wins",    pos: true },
+                  { label: "Total staked", val: `${stats.totalStaked.toFixed(1)}u`, pos: null },
+                  { label: "Settled", val: `${stats.settledCount}`, pos: null },
+                  { label: "Open", val: `${stats.openCount}`, pos: null },
                 ].map(s => (
                   <div key={s.label} style={{ textAlign: "center" }}>
                     <div className="label" style={{ marginBottom: 4 }}>{s.label}</div>
-                    <div className={`num ${s.pos === true ? "pos" : s.pos === false ? "neg" : ""}`} style={{ fontSize: 13, fontWeight: 500 }}>{s.val}</div>
+                    <div className="num" style={{ fontSize: 13, fontWeight: 500 }}>{s.val}</div>
                   </div>
                 ))}
               </div>
@@ -190,7 +223,11 @@ export default function DashboardPage() {
                 Yield per sport
               </div>
               <div style={{ padding: "var(--pad)", display: "flex", flexDirection: "column", gap: 14 }}>
-                {YIELD_SPORT.map(s => (
+                {stats.bySport.length === 0 ? (
+                  <div style={{ color: "var(--text-4)", fontFamily: "var(--mono)", fontSize: 11.5, padding: "8px 0" }}>
+                    No settled bets yet
+                  </div>
+                ) : stats.bySport.map(s => (
                   <div key={s.name} style={{ display: "grid", gridTemplateColumns: "132px 1fr 60px", gap: 14, alignItems: "center" }}>
                     <div style={{ fontFamily: "var(--mono)", fontSize: 12 }}>
                       <span style={{ marginRight: 6 }}>{s.emoji}</span>{s.name}
@@ -208,7 +245,7 @@ export default function DashboardPage() {
                     </div>
                     <div style={{ textAlign: "right" }}>
                       <div className={`num ${s.val >= 0 ? "pos" : "neg"}`} style={{ fontSize: 12.5, fontWeight: 500 }}>
-                        {s.val >= 0 ? "+" : ""}{s.val}%
+                        {s.val >= 0 ? "+" : ""}{s.val.toFixed(1)}%
                       </div>
                       <div style={{ color: "var(--text-4)", fontFamily: "var(--mono)", fontSize: 10, marginTop: 1 }}>{s.vol}</div>
                     </div>
@@ -223,7 +260,11 @@ export default function DashboardPage() {
                 Yield per market
               </div>
               <div style={{ padding: "var(--pad)", display: "flex", flexDirection: "column", gap: 12 }}>
-                {YIELD_MARKET.map(m => (
+                {stats.byMarket.length === 0 ? (
+                  <div style={{ color: "var(--text-4)", fontFamily: "var(--mono)", fontSize: 11.5, padding: "8px 0" }}>
+                    No settled bets yet
+                  </div>
+                ) : stats.byMarket.map(m => (
                   <div key={m.name} style={{ display: "grid", gridTemplateColumns: "132px 1fr 60px", gap: 14, alignItems: "center" }}>
                     <div style={{ fontFamily: "var(--mono)", fontSize: 11.5, color: "var(--text-2)" }}>{m.name}</div>
                     <div style={{ height: 8, borderRadius: 5, background: "rgba(255,255,255,0.05)", overflow: "hidden" }}>
@@ -239,7 +280,7 @@ export default function DashboardPage() {
                     </div>
                     <div style={{ textAlign: "right" }}>
                       <div className={`num ${m.val >= 0 ? "pos" : "neg"}`} style={{ fontSize: 12.5, fontWeight: 500 }}>
-                        {m.val >= 0 ? "+" : ""}{m.val}%
+                        {m.val >= 0 ? "+" : ""}{m.val.toFixed(1)}%
                       </div>
                     </div>
                   </div>
