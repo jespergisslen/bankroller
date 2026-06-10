@@ -258,7 +258,7 @@ export function LogBetModal({ onClose, onSaved }: LogBetModalProps) {
                   <input
                     value={sel.line}
                     onChange={e => updateSelection(i, "line", e.target.value)}
-                    placeholder="Selection"
+                    placeholder="Your pick — e.g. Over 2.5"
                     style={inputStyle}
                   />
                   <input
