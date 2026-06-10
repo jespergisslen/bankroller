@@ -1,15 +1,18 @@
 "use client";
 
 import { useState, useEffect, useCallback } from "react";
+import { useRouter } from "next/navigation";
 import { Sparkline } from "@/components/Sparkline";
 import { LogBetModal } from "@/components/LogBetModal";
 import { BetDrawer } from "@/components/BetDrawer";
 import { BANKROLL_CURVE, BANKROLL_NOW, DASH_KPIS, YIELD_SPORT, YIELD_MARKET, type Bet } from "@/lib/mockData";
 import { fetchMyBets, updateClosingOdds, deleteBet } from "@/lib/bets";
+import { createClient } from "@/lib/supabase";
 
 const RANGES = ["1M", "3M", "6M", "YTD", "ALL"];
 
 export default function DashboardPage() {
+  const router = useRouter();
   const [range, setRange] = useState("3M");
   const [showModal, setShowModal] = useState(false);
   const [bets, setBets] = useState<Bet[]>([]);
@@ -18,6 +21,13 @@ export default function DashboardPage() {
 
   const maxSport = Math.max(...YIELD_SPORT.map(s => Math.abs(s.val)));
   const maxMarket = Math.max(...YIELD_MARKET.map(m => Math.abs(m.val)));
+
+  // Auth guard — redirect to login if not logged in
+  useEffect(() => {
+    createClient().auth.getUser().then(({ data }) => {
+      if (!data.user) router.replace("/login");
+    });
+  }, [router]);
 
   const loadBets = useCallback(async () => {
     setLoadingBets(true);
