@@ -212,7 +212,7 @@ export function BetDrawer({ bet, onClose, onDelete, onSave, onSettle }: BetDrawe
                     <input
                       value={closingValues[i]}
                       onChange={e => updateClosing(i, e.target.value)}
-                      placeholder="e.g. 1.90 — fetched automatically via Odds API"
+                      placeholder="e.g. 1.90 — the odds at kickoff"
                       type="number" step="0.01" min="1"
                       style={{
                         width: "100%", padding: "9px 12px",
