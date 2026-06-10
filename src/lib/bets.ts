@@ -109,6 +109,20 @@ export async function updateClosingOdds(
   return { error: null };
 }
 
+// Settle a bet — set result and computed profit
+export async function settleBet(
+  betId: string,
+  result: "win" | "loss" | "void" | "open",
+  profit: number | null
+): Promise<{ error: string | null }> {
+  const supabase = createClient();
+  const { error } = await supabase
+    .from("bets")
+    .update({ result, profit })
+    .eq("id", betId);
+  return { error: error?.message ?? null };
+}
+
 // Delete a bet
 export async function deleteBet(betId: string): Promise<{ error: string | null }> {
   const supabase = createClient();

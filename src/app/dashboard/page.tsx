@@ -6,7 +6,7 @@ import { Sparkline } from "@/components/Sparkline";
 import { LogBetModal } from "@/components/LogBetModal";
 import { BetDrawer } from "@/components/BetDrawer";
 import { type Bet } from "@/lib/mockData";
-import { fetchMyBets, updateClosingOdds, deleteBet } from "@/lib/bets";
+import { fetchMyBets, updateClosingOdds, deleteBet, settleBet } from "@/lib/bets";
 import { createClient } from "@/lib/supabase";
 import { computeStats } from "@/lib/stats";
 import { useCurrency } from "@/lib/currencyContext";
@@ -93,6 +93,14 @@ export default function DashboardPage() {
     setSelectedBet(null);
   };
 
+  const handleSettle = async (result: "win" | "loss" | "void" | "open", profit: number | null) => {
+    if (!selectedBet) return;
+    const id = selectedBet.id;
+    if (id) await settleBet(id, result, profit);
+    await loadBets();
+    setSelectedBet(null);
+  };
+
   return (
     <>
       {showModal && <LogBetModal onClose={() => setShowModal(false)} onSaved={loadBets} />}
@@ -102,6 +110,7 @@ export default function DashboardPage() {
           onClose={() => setSelectedBet(null)}
           onSave={handleSave}
           onDelete={handleDelete}
+          onSettle={handleSettle}
         />
       )}
 

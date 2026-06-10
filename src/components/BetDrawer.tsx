@@ -8,16 +8,32 @@ interface BetDrawerProps {
   onClose: () => void;
   onDelete: () => void;
   onSave: (closingOdds: number | null, selectionIndex?: number) => void;
+  onSettle: (result: "win" | "loss" | "void" | "open", profit: number | null) => void;
 }
 
-export function BetDrawer({ bet, onClose, onDelete, onSave }: BetDrawerProps) {
+export function BetDrawer({ bet, onClose, onDelete, onSave, onSettle }: BetDrawerProps) {
   const isMulti = bet.betType !== "Single";
   const combinedOdds = bet.selections.reduce((acc, s) => acc * s.odds, 1);
+  const effectiveOdds = isMulti ? combinedOdds : bet.selections[0].odds;
 
   const [closingValues, setClosingValues] = useState<string[]>(
     bet.selections.map(s => s.closingOdds ? String(s.closingOdds) : "")
   );
   const [confirmDelete, setConfirmDelete] = useState(false);
+  const [settling, setSettling] = useState(false);
+
+  // Profit if this bet were settled as win / loss / void
+  const profitFor = (result: "win" | "loss" | "void"): number => {
+    if (result === "win") return +(bet.stake * (effectiveOdds - 1)).toFixed(2);
+    if (result === "loss") return -bet.stake;
+    return 0; // void
+  };
+
+  const handleSettle = async (result: "win" | "loss" | "void") => {
+    setSettling(true);
+    await onSettle(result, profitFor(result));
+    setSettling(false);
+  };
 
   const updateClosing = (i: number, val: string) => {
     setClosingValues(prev => prev.map((v, idx) => idx === i ? val : v));
@@ -94,6 +110,56 @@ export function BetDrawer({ bet, onClose, onDelete, onSave }: BetDrawerProps) {
             <span className="label">Stake</span>
             <span className="num" style={{ fontSize: 14, color: "var(--text-2)" }}>{bet.stake}u</span>
           </div>
+
+          {/* Settle — only for open bets */}
+          {bet.result === "open" && (
+            <div style={{ padding: 14, borderRadius: "var(--r-m)", border: "1px solid color-mix(in oklch, var(--warn) 30%, transparent)", background: "color-mix(in oklch, var(--warn) 6%, transparent)" }}>
+              <div className="label" style={{ marginBottom: 10 }}>Settle this bet</div>
+              <div style={{ display: "flex", gap: 8 }}>
+                {([
+                  { r: "win" as const,  label: "Win",  color: "var(--accent)" },
+                  { r: "loss" as const, label: "Loss", color: "var(--neg)" },
+                  { r: "void" as const, label: "Void", color: "var(--text-2)" },
+                ]).map(({ r, label, color }) => {
+                  const p = profitFor(r);
+                  return (
+                    <button
+                      key={r}
+                      className="btn"
+                      disabled={settling}
+                      onClick={() => handleSettle(r)}
+                      style={{
+                        flex: 1, flexDirection: "column", gap: 2, padding: "10px 6px",
+                        justifyContent: "center", alignItems: "center",
+                        borderColor: `color-mix(in oklch, ${color} 35%, transparent)`,
+                        color,
+                      }}
+                    >
+                      <span style={{ fontWeight: 600, fontSize: 13 }}>{label}</span>
+                      <span className="num" style={{ fontSize: 11, opacity: 0.85 }}>
+                        {p > 0 ? "+" : ""}{p}u
+                      </span>
+                    </button>
+                  );
+                })}
+              </div>
+              <div style={{ color: "var(--text-4)", fontFamily: "var(--mono)", fontSize: 10.5, marginTop: 8 }}>
+                Profit is calculated from your {isMulti ? "combined odds" : "odds"} ({effectiveOdds.toFixed(2)}) × stake.
+              </div>
+            </div>
+          )}
+
+          {/* Re-open a settled bet */}
+          {bet.result !== "open" && (
+            <button
+              className="btn sm"
+              disabled={settling}
+              onClick={async () => { setSettling(true); await onSettle("open", null); setSettling(false); }}
+              style={{ color: "var(--text-3)", alignSelf: "flex-start" }}
+            >
+              ↺ Re-open (undo settle)
+            </button>
+          )}
 
           {/* Selections */}
           <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
