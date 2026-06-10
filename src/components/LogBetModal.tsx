@@ -2,9 +2,11 @@
 
 import { useState } from "react";
 import { useCurrency } from "@/lib/currencyContext";
+import { saveBet } from "@/lib/bets";
 
 interface LogBetModalProps {
   onClose: () => void;
+  onSaved?: () => void;
 }
 
 const SPORTS = [
@@ -52,7 +54,7 @@ function makeSelections(count: number, existing: Selection[]): Selection[] {
   return [...existing, ...Array.from({ length: count - existing.length }, emptySelection)];
 }
 
-export function LogBetModal({ onClose }: LogBetModalProps) {
+export function LogBetModal({ onClose, onSaved }: LogBetModalProps) {
   const { stakeLabel, currency } = useCurrency();
   const [step, setStep] = useState<"details" | "publish">("details");
 
@@ -67,7 +69,33 @@ export function LogBetModal({ onClose }: LogBetModalProps) {
   const [analysis, setAnalysis] = useState("");
   const [isMaxbet, setIsMaxbet] = useState(false);
 
+  const [saving, setSaving] = useState(false);
+  const [saveError, setSaveError] = useState<string | null>(null);
   const isAcca = betType === "Accumulator";
+
+  const handleSave = async () => {
+    setSaving(true);
+    setSaveError(null);
+    const { error } = await saveBet({
+      betType,
+      stake: parseFloat(stake),
+      bookmaker: showCustomBookie ? customBookmaker : bookmaker,
+      isPublic,
+      analysis,
+      isMaxbet,
+      selections: selections.map(s => ({
+        sport: s.sport,
+        match: s.match,
+        market: s.market,
+        line: s.line,
+        odds: parseFloat(s.odds),
+      })),
+    });
+    setSaving(false);
+    if (error) { setSaveError(error); return; }
+    onSaved?.();
+    onClose();
+  };
 
   const handleBetType = (type: BetType) => {
     const count = BET_TYPES.find(b => b.label === type)!.count;
@@ -107,7 +135,7 @@ export function LogBetModal({ onClose }: LogBetModalProps) {
       onClick={e => e.target === e.currentTarget && onClose()}
     >
       <div
-        className="panel fade-in"
+        className="panel fade-in log-bet-modal"
         style={{ width: "100%", maxWidth: 580, maxHeight: "92vh", overflowY: "auto" }}
       >
         {/* Header */}
@@ -471,10 +499,17 @@ export function LogBetModal({ onClose }: LogBetModalProps) {
               </div>
             )}
 
+            {saveError && (
+              <div style={{
+                padding: "10px 12px", borderRadius: "var(--r-s)",
+                background: "rgba(224,85,85,0.08)", border: "1px solid rgba(224,85,85,0.3)",
+                color: "#e05555", fontFamily: "var(--mono)", fontSize: 12,
+              }}>{saveError}</div>
+            )}
             <div style={{ display: "flex", gap: 8 }}>
               <button className="btn" style={{ flex: 1, justifyContent: "center" }} onClick={() => setStep("details")}>← Back</button>
-              <button className="btn accent" style={{ flex: 2, justifyContent: "center" }}>
-                {isPublic ? "Save & publish tip" : "Save bet"}
+              <button className="btn accent" style={{ flex: 2, justifyContent: "center" }} onClick={handleSave} disabled={saving}>
+                {saving ? "Saving…" : isPublic ? "Save & publish tip" : "Save bet"}
               </button>
             </div>
           </div>

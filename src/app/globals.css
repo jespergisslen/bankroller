@@ -186,7 +186,63 @@ body {
   border-color: color-mix(in oklch, var(--accent) 25%, transparent);
 }
 
-/* Entrance animation (transform only — never opacity) */
+/* ─── Responsive / Mobile ──────────────────────────────────────────────── */
+
+/* KPI grid: 2-col on narrow */
+@media (max-width: 600px) {
+  .kpi-grid {
+    grid-template-columns: repeat(2, 1fr) !important;
+  }
+  .kpi-grid > *:last-child:nth-child(odd) {
+    grid-column: span 2;
+  }
+}
+
+/* Bets table: hide less critical columns, horizontal scroll */
+@media (max-width: 700px) {
+  .col-date   { display: none !important; }
+  .col-clv    { display: none !important; }
+  .col-stake  { display: none !important; }
+  .bets-table-wrap { overflow-x: auto; -webkit-overflow-scrolling: touch; }
+}
+
+/* BetDrawer: full-width on mobile */
+@media (max-width: 540px) {
+  .bet-drawer {
+    width: 100% !important;
+    left: 0 !important;
+    border-left: none !important;
+    border-top: 1px solid var(--line-2);
+  }
+}
+
+/* LogBetModal: full-screen on mobile */
+@media (max-width: 640px) {
+  .log-bet-modal {
+    width: 100% !important;
+    max-width: 100% !important;
+    max-height: 100dvh !important;
+    border-radius: 0 !important;
+    margin: 0 !important;
+    top: 0 !important;
+    left: 0 !important;
+    transform: none !important;
+  }
+}
+
+/* Topbar: collapse nav on mobile */
+@media (max-width: 540px) {
+  .topbar-nav { display: none !important; }
+  .topbar-right { gap: 6px !important; }
+}
+
+/* Feed: stack cards on narrow */
+@media (max-width: 700px) {
+  .feed-layout { grid-template-columns: 1fr !important; }
+  .feed-sidebar { display: none !important; }
+}
+
+/* ─── Entrance animation (transform only — never opacity) ───────────────── */
 @keyframes fadeIn {
   from { transform: translateY(9px); }
   to   { transform: translateY(0); }

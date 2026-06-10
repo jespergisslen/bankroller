@@ -3,8 +3,8 @@
   "configurations": [
     {
       "name": "bankroller",
-      "runtimeExecutable": "npm",
-      "runtimeArgs": ["run", "dev", "--", "--port", "4567"],
+      "runtimeExecutable": "pnpm",
+      "runtimeArgs": ["dev", "--port", "4567"],
       "cwd": "/Users/jespergisslen/code/bankroller",
       "port": 4567
     }

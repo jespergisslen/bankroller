@@ -1,7 +1,9 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import { useRouter } from "next/navigation";
 import { useCurrency } from "@/lib/currencyContext";
+import { createClient } from "@/lib/supabase";
 
 const TIPSTERS = [
   { id: "vh",  name: "ValueHunter", initials: "VH", color: "#00e5a0", verified: true,  yield: 12.4, tips: 612  },
@@ -88,7 +90,17 @@ const SPORTS_FILTER = ["All", "⚽ Football", "🎾 Tennis", "🐎 Trotting", "�
 
 export default function FeedPage() {
   const { stakeLabel } = useCurrency();
+  const router = useRouter();
   const [sportFilter, setSportFilter] = useState("All");
+  const [isLoggedIn, setIsLoggedIn] = useState(false);
+
+  useEffect(() => {
+    createClient().auth.getUser().then(({ data }) => setIsLoggedIn(!!data.user));
+  }, []);
+
+  const requireAuth = () => {
+    router.push(isLoggedIn ? "/dashboard" : "/register");
+  };
 
   const filtered = FEED.filter(tip =>
     sportFilter === "All" || tip.sport === sportFilter.split(" ")[0]
@@ -102,7 +114,7 @@ export default function FeedPage() {
           <h1 style={{ fontSize: 22, fontWeight: 600, letterSpacing: "-0.01em" }}>Feed</h1>
           <p style={{ color: "var(--text-2)", marginTop: 4, fontSize: 13.5 }}>Public picks from verified tipsters.</p>
         </div>
-        <button className="btn accent sm">+ Publish a tip</button>
+        <button className="btn accent sm" onClick={requireAuth}>+ Publish a tip</button>
       </div>
 
       {/* Filters */}
@@ -115,7 +127,7 @@ export default function FeedPage() {
       </div>
 
       {/* Two-column layout */}
-      <div style={{ display: "grid", gridTemplateColumns: "2fr 1fr", gap: 16, alignItems: "start" }}>
+      <div className="feed-layout" style={{ display: "grid", gridTemplateColumns: "2fr 1fr", gap: 16, alignItems: "start" }}>
 
         {/* Feed */}
         <div className="panel">
@@ -136,7 +148,7 @@ export default function FeedPage() {
         </div>
 
         {/* Right rail */}
-        <div style={{ display: "flex", flexDirection: "column", gap: 16 }}>
+        <div className="feed-sidebar" style={{ display: "flex", flexDirection: "column", gap: 16 }}>
           {/* Leaderboard */}
           <div className="panel">
             <div style={{ padding: "14px var(--pad)", borderBottom: "1px solid var(--line)", fontWeight: 600, fontSize: 13 }}>
@@ -184,7 +196,7 @@ export default function FeedPage() {
             <div style={{ color: "var(--text-2)", fontSize: 13, lineHeight: 1.6, marginBottom: 16 }}>
               Log your bets, publish your analysis, and build a verified track record the community can follow.
             </div>
-            <button className="btn accent" style={{ width: "100%", justifyContent: "center" }}>Get started →</button>
+            <button className="btn accent" style={{ width: "100%", justifyContent: "center" }} onClick={requireAuth}>Get started →</button>
           </div>
         </div>
       </div>
@@ -288,7 +300,7 @@ function FeedRow({ tip, stakeLabel, isLast }: {
         <div className="num pos glow" style={{ fontSize: 22, fontWeight: 600, letterSpacing: "-0.02em" }}>
           +{tip.postedYield}%
         </div>
-        <button className="btn sm" style={{ marginTop: 8, width: "100%", justifyContent: "center" }}>Follow</button>
+
       </div>
     </div>
   );

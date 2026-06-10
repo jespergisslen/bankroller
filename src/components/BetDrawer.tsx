@@ -40,7 +40,7 @@ export function BetDrawer({ bet, onClose, onDelete, onSave }: BetDrawerProps) {
         animation: "fadeInBd 0.2s ease both",
       }} />
 
-      <div style={{
+      <div className="bet-drawer" style={{
         position: "fixed", top: 0, right: 0, bottom: 0,
         width: 440, zIndex: 90,
         background: "var(--bg-1)", borderLeft: "1px solid var(--line-2)",
