@@ -270,31 +270,6 @@ export function LogBetModal({ onClose, onSaved }: LogBetModalProps) {
                   />
                 </div>
 
-                {/* Closing odds (single only — for multi it's complex, shown in drawer later) */}
-                {betType === "Single" && (
-                  <div>
-                    <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 6 }}>
-                      <div className="label">Closing odds <span style={{ color: "var(--text-4)", letterSpacing: 0, textTransform: "none", fontSize: 11 }}>(optional)</span></div>
-                      {sel.odds && sel.closingOdds && parseFloat(sel.odds) > 0 && parseFloat(sel.closingOdds) > 0 && (() => {
-                        const clv = ((parseFloat(sel.odds) / parseFloat(sel.closingOdds)) - 1) * 100;
-                        return (
-                          <span style={{ fontFamily: "var(--mono)", fontSize: 11 }}>
-                            CLV <span style={{ color: clv >= 0 ? "var(--accent)" : "var(--neg)", fontWeight: 600 }}>
-                              {clv >= 0 ? "+" : ""}{clv.toFixed(1)}%
-                            </span>
-                          </span>
-                        );
-                      })()}
-                    </div>
-                    <input
-                      value={sel.closingOdds}
-                      onChange={e => updateSelection(i, "closingOdds", e.target.value)}
-                      placeholder="e.g. 1.90 — fetched automatically via Odds API"
-                      type="number" step="0.01" min="1"
-                      style={inputStyle}
-                    />
-                  </div>
-                )}
               </div>
             ))}
 
