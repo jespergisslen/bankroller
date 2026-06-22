@@ -9,10 +9,11 @@ import { PersonaSwitcher } from "./PersonaSwitcher";
 import { createClient } from "@/lib/supabase";
 import type { User } from "@supabase/supabase-js";
 
+// hrefOut = where it points when logged OUT (My Bets → sign in, Profile → leaderboard)
 const NAV = [
-  { index: "01", label: "My Bets", href: "/dashboard" },
-  { index: "02", label: "Feed",    href: "/feed" },
-  { index: "03", label: "Profile", href: "/profile" },
+  { index: "01", label: "My Bets", href: "/dashboard",   hrefOut: "/login" },
+  { index: "02", label: "Feed",    href: "/feed",        hrefOut: "/feed" },
+  { index: "03", label: "Profile", href: "/profile",     hrefOut: "/leaderboard" },
 ];
 
 function LiveClock() {
@@ -94,11 +95,10 @@ export function Topbar() {
 
       <nav className="topbar-nav" style={{ display: "flex", gap: 4 }}>
         {NAV.map((item) => {
-          // Hide "My Bets" and "Profile" when not logged in
-          if (!user && (item.href === "/dashboard" || item.href === "/profile")) return null;
-          const active = pathname.startsWith(item.href);
+          const href = user ? item.href : item.hrefOut;
+          const active = pathname.startsWith(href);
           return (
-            <Link key={item.href} href={item.href} style={{
+            <Link key={item.label} href={href} style={{
               display: "flex", alignItems: "center", gap: 6,
               padding: "6px 10px", borderRadius: "var(--r-s)",
               textDecoration: "none", fontFamily: "var(--mono)", fontSize: 12.5,

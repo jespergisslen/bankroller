@@ -242,6 +242,11 @@ body {
   .feed-sidebar { display: none !important; }
 }
 
+/* Landing: stack feature cards on narrow */
+@media (max-width: 640px) {
+  .landing-features { grid-template-columns: 1fr !important; }
+}
+
 /* Feed rows: stack pick box + reflow on phones */
 @media (max-width: 560px) {
   /* Tighter page + topbar gutters */
