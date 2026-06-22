@@ -5,6 +5,7 @@ import { usePathname, useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import { Logo } from "./Logo";
 import { CurrencyPicker } from "./CurrencyPicker";
+import { PersonaSwitcher } from "./PersonaSwitcher";
 import { createClient } from "@/lib/supabase";
 import type { User } from "@supabase/supabase-js";
 
@@ -128,23 +129,7 @@ export function Topbar() {
           <CurrencyPicker />
 
           {user ? (
-            <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
-              <button
-                className="btn sm"
-                style={{ borderRadius: "50%", width: 30, height: 30, padding: 0, justifyContent: "center" }}
-                aria-label="Account"
-                title={user.email}
-              >
-                <span className="num" style={{ fontSize: 11 }}>{initials}</span>
-              </button>
-              <button
-                className="btn sm"
-                onClick={handleSignOut}
-                style={{ color: "var(--text-3)" }}
-              >
-                Sign out
-              </button>
-            </div>
+            <PersonaSwitcher fallbackInitials={initials} onSignOut={handleSignOut} />
           ) : (
             <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
               <Link href="/login" className="btn sm" style={{ textDecoration: "none" }}>

@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import "./globals.css";
 import { Topbar } from "@/components/Topbar";
 import { CurrencyProvider } from "@/lib/currencyContext";
+import { PersonaProvider } from "@/lib/personaContext";
 import { SITE_URL } from "@/lib/site";
 
 export const metadata: Metadata = {
@@ -27,12 +28,14 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
           }
         `}</style>
         <CurrencyProvider>
-          <div style={{ position: "relative", zIndex: 1 }}>
-            <Topbar />
-            <main className="app-main" style={{ maxWidth: 1320, margin: "0 auto", padding: "26px 22px 90px" }}>
-              {children}
-            </main>
-          </div>
+          <PersonaProvider>
+            <div style={{ position: "relative", zIndex: 1 }}>
+              <Topbar />
+              <main className="app-main" style={{ maxWidth: 1320, margin: "0 auto", padding: "26px 22px 90px" }}>
+                {children}
+              </main>
+            </div>
+          </PersonaProvider>
         </CurrencyProvider>
       </body>
     </html>

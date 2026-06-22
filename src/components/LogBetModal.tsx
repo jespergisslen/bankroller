@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { useCurrency } from "@/lib/currencyContext";
+import { usePersona } from "@/lib/personaContext";
 import { saveBet } from "@/lib/bets";
 
 interface LogBetModalProps {
@@ -61,6 +62,7 @@ function makeSelections(count: number, existing: Selection[]): Selection[] {
 
 export function LogBetModal({ onClose, onSaved }: LogBetModalProps) {
   const { stakeLabel, currency } = useCurrency();
+  const { activeId, active } = usePersona();
   const [step, setStep] = useState<"details" | "publish">("details");
 
   const [betType, setBetType] = useState<BetType>("Single");
@@ -91,6 +93,7 @@ export function LogBetModal({ onClose, onSaved }: LogBetModalProps) {
       betType,
       stake: parseFloat(stake),
       matchDate: matchDate || undefined,
+      profileId: activeId ?? undefined,
       bookmaker: showCustomBookie ? customBookmaker : bookmaker,
       referralLink,
       isPublic,
@@ -510,6 +513,16 @@ export function LogBetModal({ onClose, onSaved }: LogBetModalProps) {
                 color: "var(--warn)", fontSize: 12, lineHeight: 1.5,
               }}>
                 This event&apos;s date has already passed — tips can only be published before the match starts. Keep it private, or update the match date.
+              </div>
+            )}
+
+            {isPublic && !publishBlocked && active && (
+              <div className="fade-in" style={{
+                display: "flex", alignItems: "center", gap: 8, padding: "9px 12px",
+                borderRadius: "var(--r-s)", background: "rgba(255,255,255,0.025)",
+                border: "1px solid var(--line)", fontFamily: "var(--mono)", fontSize: 11.5, color: "var(--text-2)",
+              }}>
+                Publishing as <span style={{ color: "var(--accent)" }}>@{active.username}</span>
               </div>
             )}
 

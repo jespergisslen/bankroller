@@ -10,12 +10,14 @@ import { fetchMyBets, updateClosingOdds, deleteBet, settleBet } from "@/lib/bets
 import { createClient } from "@/lib/supabase";
 import { computeStats } from "@/lib/stats";
 import { useCurrency } from "@/lib/currencyContext";
+import { usePersona } from "@/lib/personaContext";
 
 const RANGES = ["1M", "3M", "6M", "YTD", "ALL"];
 
 export default function DashboardPage() {
   const router = useRouter();
   const { format } = useCurrency();
+  const { activeId, active } = usePersona();
   const [range, setRange] = useState("3M");
   const [showModal, setShowModal] = useState(false);
   const [bets, setBets] = useState<Bet[]>([]);
@@ -68,12 +70,12 @@ export default function DashboardPage() {
 
   const loadBets = useCallback(async () => {
     setLoadingBets(true);
-    const data = await fetchMyBets();
+    const data = await fetchMyBets(activeId ?? undefined);
     setBets(data);
     setLoadingBets(false);
-  }, []);
+  }, [activeId]);
 
-  useEffect(() => { loadBets(); }, [loadBets]);
+  useEffect(() => { if (activeId) loadBets(); }, [loadBets, activeId]);
 
   const handleSave = async (closingOdds: number | null) => {
     if (!selectedBet) return;

@@ -63,12 +63,12 @@ export async function fetchPublicBets(): Promise<PublicTip[]> {
 
   if (error || !betsData) return [];
 
-  // Fetch author profiles
-  const userIds = [...new Set(betsData.map((b) => b.user_id))];
+  // Fetch author profiles (the persona that posted each tip)
+  const profileIds = [...new Set(betsData.map((b) => b.profile_id || b.user_id))];
   const { data: profiles } = await supabase
     .from("profiles")
     .select("id, username, display_name")
-    .in("id", userIds);
+    .in("id", profileIds);
   const profileMap = new Map((profiles ?? []).map((p) => [p.id, p]));
 
   return betsData.map((b) => {
@@ -79,7 +79,7 @@ export async function fetchPublicBets(): Promise<PublicTip[]> {
     const combinedOdds = sels.reduce((acc: number, s: any) => acc * Number(s.odds), 1);
     const isMulti = b.bet_type !== "Single";
 
-    const prof = profileMap.get(b.user_id);
+    const prof = profileMap.get(b.profile_id || b.user_id);
     const name = prof?.display_name || prof?.username || "Anonymous";
     const initials = name.slice(0, 2).toUpperCase();
     const colorIdx = name.charCodeAt(0) % AVATAR_COLORS.length;
@@ -176,7 +176,7 @@ export async function getPublicTip(slugOrId: string): Promise<TipData | null> {
   if (!b) return null;
 
   const profRes = await fetch(
-    `${url}/rest/v1/profiles?id=eq.${b.user_id}&select=username,display_name`,
+    `${url}/rest/v1/profiles?id=eq.${b.profile_id || b.user_id}&select=username,display_name`,
     { headers, cache: "no-store" }
   );
   const prof = profRes.ok ? (await profRes.json())?.[0] : null;
@@ -255,7 +255,7 @@ export async function getTipsterProfile(username: string): Promise<TipsterProfil
   if (!prof) return null;
 
   const betsRes = await fetch(
-    `${url}/rest/v1/bets?user_id=eq.${prof.id}&is_public=eq.true&select=*,selections(*)&order=created_at.desc`,
+    `${url}/rest/v1/bets?profile_id=eq.${prof.id}&is_public=eq.true&select=*,selections(*)&order=created_at.desc`,
     { headers, cache: "no-store" }
   );
   const bets = betsRes.ok ? await betsRes.json() : [];
@@ -302,14 +302,14 @@ export async function listTipsterUsernames(): Promise<string[]> {
   if (!url || !key) return [];
   const headers = { apikey: key, Authorization: `Bearer ${key}` };
   const betsRes = await fetch(
-    `${url}/rest/v1/bets?is_public=eq.true&select=user_id`,
+    `${url}/rest/v1/bets?is_public=eq.true&select=profile_id,user_id`,
     { headers, cache: "no-store" }
   );
   if (!betsRes.ok) return [];
-  const userIds = [...new Set((await betsRes.json() as any[]).map((b) => b.user_id))];
-  if (!userIds.length) return [];
+  const profileIds = [...new Set((await betsRes.json() as any[]).map((b) => b.profile_id || b.user_id))];
+  if (!profileIds.length) return [];
   const profRes = await fetch(
-    `${url}/rest/v1/profiles?id=in.(${userIds.join(",")})&select=username`,
+    `${url}/rest/v1/profiles?id=in.(${profileIds.join(",")})&select=username`,
     { headers, cache: "no-store" }
   );
   if (!profRes.ok) return [];
@@ -317,14 +317,16 @@ export async function listTipsterUsernames(): Promise<string[]> {
 }
 
 // Fetch all bets for the logged-in user
-export async function fetchMyBets(): Promise<Bet[]> {
+export async function fetchMyBets(profileId?: string): Promise<Bet[]> {
   const supabase = createClient();
   const { data: { user } } = await supabase.auth.getUser();
   if (!user) return [];
-  const { data: betsData, error } = await supabase
+  let query = supabase
     .from("bets")
     .select("*, selections(*)")
-    .eq("user_id", user.id)
+    .eq("user_id", user.id);
+  if (profileId) query = query.eq("profile_id", profileId);
+  const { data: betsData, error } = await query
     .order("date", { ascending: false })
     .order("created_at", { ascending: false });
 
@@ -360,6 +362,7 @@ export async function saveBet(params: {
   betType: Bet["betType"];
   stake: number;
   matchDate?: string;
+  profileId?: string;
   bookmaker: string;
   referralLink?: string;
   isPublic: boolean;
@@ -375,6 +378,7 @@ export async function saveBet(params: {
     .from("bets")
     .insert({
       user_id: user.id,
+      profile_id: params.profileId ?? user.id,
       bet_type: params.betType,
       stake: params.stake,
       ...(params.matchDate ? { date: params.matchDate } : {}),

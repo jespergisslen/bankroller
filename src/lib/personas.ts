@@ -1,0 +1,72 @@
+import { createClient } from "./supabase";
+
+export interface Persona {
+  id: string;
+  username: string;
+  displayName: string;
+  bio: string;
+}
+
+// All personas owned by the logged-in user (primary + brand profiles).
+export async function fetchMyPersonas(): Promise<Persona[]> {
+  const supabase = createClient();
+  const { data: { user } } = await supabase.auth.getUser();
+  if (!user) return [];
+  const { data } = await supabase
+    .from("profiles")
+    .select("id, username, display_name, bio")
+    .eq("owner_id", user.id)
+    .order("created_at", { ascending: true });
+  return (data ?? []).map((p) => ({
+    id: p.id,
+    username: p.username ?? "",
+    displayName: p.display_name ?? "",
+    bio: p.bio ?? "",
+  }));
+}
+
+// Update a persona's editable fields. RLS ensures the user owns it.
+export async function updatePersona(profileId: string, params: {
+  displayName: string;
+  bio: string;
+}): Promise<{ error: string | null }> {
+  const supabase = createClient();
+  const { error } = await supabase
+    .from("profiles")
+    .update({ display_name: params.displayName || null, bio: params.bio || null })
+    .eq("id", profileId);
+  return { error: error?.message ?? null };
+}
+
+// Create a new persona (brand profile) owned by the logged-in user.
+export async function createPersona(params: {
+  username: string;
+  displayName: string;
+}): Promise<{ error: string | null; id: string | null }> {
+  const supabase = createClient();
+  const { data: { user } } = await supabase.auth.getUser();
+  if (!user) return { error: "Not logged in", id: null };
+
+  const username = params.username.trim().toLowerCase();
+  if (!/^[a-z0-9_]{3,20}$/.test(username)) {
+    return { error: "Username must be 3–20 chars: letters, numbers, underscore.", id: null };
+  }
+
+  const { data, error } = await supabase
+    .from("profiles")
+    .insert({
+      owner_id: user.id,
+      username,
+      display_name: params.displayName.trim() || username,
+    })
+    .select("id")
+    .single();
+
+  if (error) {
+    if (error.code === "23505" || /duplicate|unique/i.test(error.message)) {
+      return { error: "That username is already taken.", id: null };
+    }
+    return { error: error.message, id: null };
+  }
+  return { error: null, id: data.id };
+}
