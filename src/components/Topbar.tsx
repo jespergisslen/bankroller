@@ -89,7 +89,7 @@ export function Topbar() {
       background: "color-mix(in oklch, var(--bg) 82%, transparent)",
       borderBottom: "1px solid var(--line)",
     }}>
-      <Link href={user ? "/dashboard" : "/feed"} style={{ textDecoration: "none" }}>
+      <Link href="/" style={{ textDecoration: "none" }}>
         <Logo />
       </Link>
 

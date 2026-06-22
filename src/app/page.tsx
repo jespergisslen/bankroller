@@ -1,7 +1,6 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { fetchPublicBets } from "@/lib/bets";
-import { LoggedInRedirect } from "@/components/LoggedInRedirect";
 
 export const metadata: Metadata = {
   title: "Bankroller — the terminal for serious bettors",
@@ -41,8 +40,6 @@ export default async function Home() {
 
   return (
     <div className="fade-in" style={{ maxWidth: 880, margin: "0 auto" }}>
-      <LoggedInRedirect />
-
       {/* Hero */}
       <section style={{ position: "relative", textAlign: "center", padding: "48px 16px 40px", overflow: "hidden" }}>
         {/* eslint-disable-next-line @next/next/no-img-element */}
