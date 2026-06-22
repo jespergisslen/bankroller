@@ -226,7 +226,7 @@ function FeedRow({ tip, stakeLabel, isLast }: {
   const stakeDisplay = `${tip.stake}${stakeLabel === "u" ? "u" : " " + stakeLabel}`;
 
   return (
-    <div style={{
+    <div className="feed-row" style={{
       display: "grid", gridTemplateColumns: "44px 1fr auto",
       gap: 14, padding: "18px var(--pad)",
       borderBottom: isLast ? "none" : "1px solid var(--line)",
@@ -264,7 +264,7 @@ function FeedRow({ tip, stakeLabel, isLast }: {
         </div>
 
         {/* Pick box */}
-        <div style={{
+        <div className="feed-pick" style={{
           display: "inline-flex", alignItems: "center",
           background: "var(--bg-2)",
           border: "1px solid var(--line-2)",
@@ -308,7 +308,7 @@ function FeedRow({ tip, stakeLabel, isLast }: {
       </div>
 
       {/* Yield badge */}
-      <div style={{ textAlign: "right", flexShrink: 0 }}>
+      <div className="feed-yield" style={{ textAlign: "right", flexShrink: 0 }}>
         {tip.postedYield !== null ? (
           <>
             <div className="label" style={{ marginBottom: 6 }}>verified yield</div>

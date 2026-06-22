@@ -32,7 +32,7 @@ function LiveClock() {
 
   if (!time) return null;
   return (
-    <div className="num" style={{ fontSize: 12.5, color: "var(--text-2)", display: "flex", alignItems: "center", gap: 6 }}>
+    <div className="num topbar-clock" style={{ fontSize: 12.5, color: "var(--text-2)", display: "flex", alignItems: "center", gap: 6 }}>
       <span style={{
         width: 7, height: 7, borderRadius: "50%",
         background: "var(--accent)",
@@ -79,7 +79,7 @@ export function Topbar() {
     : user?.email?.slice(0, 2).toUpperCase() ?? "??";
 
   return (
-    <header style={{
+    <header className="topbar" style={{
       position: "sticky", top: 0, height: 56, zIndex: 50,
       display: "flex", alignItems: "center",
       padding: "0 22px", gap: 28,

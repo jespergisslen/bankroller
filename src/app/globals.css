@@ -242,6 +242,39 @@ body {
   .feed-sidebar { display: none !important; }
 }
 
+/* Feed rows: stack pick box + reflow on phones */
+@media (max-width: 560px) {
+  /* Tighter page + topbar gutters */
+  .app-main { padding: 18px 14px 80px !important; }
+  .topbar   { padding: 0 14px !important; gap: 14px !important; }
+  .topbar-clock { display: none !important; }
+
+  /* Avatar above content, yield badge moves inline under the name */
+  .feed-row {
+    grid-template-columns: 44px 1fr !important;
+    gap: 12px !important;
+    padding: 16px 14px !important;
+  }
+  .feed-row > .feed-yield {
+    grid-column: 1 / -1;
+    text-align: left !important;
+    margin-top: 2px;
+  }
+
+  /* Pick box: wrap the cells instead of one overflowing row */
+  .feed-pick {
+    display: flex !important;
+    flex-wrap: wrap;
+    width: 100%;
+  }
+  .feed-pick > * {
+    border-right: none !important;
+    border-bottom: 1px solid var(--line);
+    flex: 1 1 50%;
+    min-width: 120px;
+  }
+}
+
 /* ─── Entrance animation (transform only — never opacity) ───────────────── */
 @keyframes fadeIn {
   from { transform: translateY(9px); }

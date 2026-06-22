@@ -27,7 +27,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         <CurrencyProvider>
           <div style={{ position: "relative", zIndex: 1 }}>
             <Topbar />
-            <main style={{ maxWidth: 1320, margin: "0 auto", padding: "26px 22px 90px" }}>
+            <main className="app-main" style={{ maxWidth: 1320, margin: "0 auto", padding: "26px 22px 90px" }}>
               {children}
             </main>
           </div>
