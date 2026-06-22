@@ -1,6 +1,7 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
+import { createPortal } from "react-dom";
 
 interface ShareModalProps {
   tipId: string;
@@ -10,6 +11,9 @@ interface ShareModalProps {
 
 export function ShareModal({ tipId, shareText, onClose }: ShareModalProps) {
   const [copied, setCopied] = useState(false);
+  const [mounted, setMounted] = useState(false);
+
+  useEffect(() => setMounted(true), []);
 
   const url = typeof window !== "undefined"
     ? `${window.location.origin}/tip/${tipId}`
@@ -40,7 +44,9 @@ export function ShareModal({ tipId, shareText, onClose }: ShareModalProps) {
     }
   };
 
-  return (
+  if (!mounted) return null;
+
+  return createPortal(
     <div
       style={{
         position: "fixed", inset: 0, zIndex: 200,
@@ -85,6 +91,7 @@ export function ShareModal({ tipId, shareText, onClose }: ShareModalProps) {
           </div>
         </div>
       </div>
-    </div>
+    </div>,
+    document.body
   );
 }
