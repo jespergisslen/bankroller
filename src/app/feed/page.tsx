@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import { useCurrency } from "@/lib/currencyContext";
 import { createClient } from "@/lib/supabase";
 import { fetchPublicBets, type PublicTip } from "@/lib/bets";
+import { ShareModal } from "@/components/ShareModal";
 
 const TIPSTERS = [
   { id: "vh",  name: "ValueHunter", initials: "VH", color: "#00e5a0", verified: true,  yield: 12.4, tips: 612  },
@@ -223,7 +224,9 @@ function FeedRow({ tip, stakeLabel, isLast }: {
   stakeLabel: string;
   isLast: boolean;
 }) {
+  const [shareOpen, setShareOpen] = useState(false);
   const bookieUrl = tip.referralLink || BOOKIE_LINKS[tip.bookmaker] || "#";
+  const shareText = `${tip.match} — ${tip.pick} @ ${tip.odds.toFixed(2)} (${tip.tipster.name} on Bankroller)`;
   const stakeDisplay = `${tip.stake}${stakeLabel === "u" ? "u" : " " + stakeLabel}`;
 
   return (
@@ -303,19 +306,25 @@ function FeedRow({ tip, stakeLabel, isLast }: {
           </a>
         </div>
 
-        <div style={{ marginTop: 8, display: "flex", alignItems: "center", gap: 12 }}>
+        <div style={{ marginTop: 10, display: "flex", alignItems: "center", gap: 12 }}>
           <span style={{ color: "var(--text-4)", fontFamily: "var(--mono)", fontSize: 10.5 }}>{tip.posted}</span>
           {tip.id && (
-            <a
-              href={`/tip/${tip.id}`}
-              style={{ color: "var(--text-3)", fontFamily: "var(--mono)", fontSize: 10.5, textDecoration: "none" }}
-              onMouseEnter={e => (e.currentTarget as HTMLElement).style.color = "var(--accent)"}
-              onMouseLeave={e => (e.currentTarget as HTMLElement).style.color = "var(--text-3)"}
+            <button
+              onClick={() => setShareOpen(true)}
+              className="btn sm"
+              style={{
+                color: "var(--accent)",
+                borderColor: "color-mix(in oklch, var(--accent) 35%, transparent)",
+                background: "color-mix(in oklch, var(--accent) 8%, transparent)",
+              }}
             >
               ↗ Share
-            </a>
+            </button>
           )}
         </div>
+        {shareOpen && tip.id && (
+          <ShareModal tipId={tip.id} shareText={shareText} onClose={() => setShareOpen(false)} />
+        )}
       </div>
 
       {/* Yield badge */}
