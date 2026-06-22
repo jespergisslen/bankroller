@@ -125,15 +125,16 @@ export function Topbar() {
 
       {!loadingUser && (
         <div className="topbar-right" style={{ display: "flex", alignItems: "center", gap: 10 }}>
-          <LiveClock />
-          <CurrencyPicker />
-
           {user ? (
-            <PersonaSwitcher fallbackInitials={initials} onSignOut={handleSignOut} />
+            <>
+              <LiveClock />
+              <CurrencyPicker />
+              <PersonaSwitcher fallbackInitials={initials} onSignOut={handleSignOut} />
+            </>
           ) : (
             <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
               <Link href="/login" className="btn sm" style={{ textDecoration: "none" }}>
-                Sign in
+                Log in
               </Link>
               <Link href="/register" className="btn sm accent" style={{ textDecoration: "none" }}>
                 Register
