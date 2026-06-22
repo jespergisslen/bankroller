@@ -94,9 +94,12 @@ export async function fetchPublicBets(): Promise<PublicTip[]> {
 // Fetch all bets for the logged-in user
 export async function fetchMyBets(): Promise<Bet[]> {
   const supabase = createClient();
+  const { data: { user } } = await supabase.auth.getUser();
+  if (!user) return [];
   const { data: betsData, error } = await supabase
     .from("bets")
     .select("*, selections(*)")
+    .eq("user_id", user.id)
     .order("date", { ascending: false })
     .order("created_at", { ascending: false });
 
