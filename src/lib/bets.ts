@@ -91,6 +91,81 @@ export async function fetchPublicBets(): Promise<PublicTip[]> {
   });
 }
 
+export interface TipData {
+  id: string;
+  name: string;
+  initials: string;
+  color: string;
+  verified: boolean;
+  sportEmoji: string;
+  sportLabel: string;
+  league: string;
+  match: string;
+  date: string;
+  analysis: string;
+  pick: string;
+  odds: number;
+  stake: number;
+  bookmaker: string;
+  referralLink: string | null;
+  betType: string;
+  legs: { match: string; market: string; line: string; odds: number }[];
+}
+
+// Fetch a single public tip by id — works server-side (REST + fetch), no browser deps.
+// Used by the public /tip/[id] page and its dynamic OG image.
+export async function getPublicTip(id: string): Promise<TipData | null> {
+  const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
+  const key = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
+  if (!url || !key) return null;
+  const headers = { apikey: key, Authorization: `Bearer ${key}` };
+
+  const betRes = await fetch(
+    `${url}/rest/v1/bets?id=eq.${id}&is_public=eq.true&select=*,selections(*)`,
+    { headers, cache: "no-store" }
+  );
+  if (!betRes.ok) return null;
+  const betsData = await betRes.json();
+  const b = betsData?.[0];
+  if (!b) return null;
+
+  const profRes = await fetch(
+    `${url}/rest/v1/profiles?id=eq.${b.user_id}&select=username,display_name`,
+    { headers, cache: "no-store" }
+  );
+  const prof = profRes.ok ? (await profRes.json())?.[0] : null;
+  const name = prof?.display_name || prof?.username || "Anonymous";
+
+  const sels = (b.selections as any[]).slice().sort(
+    (a, c) => (a.sort_order ?? 0) - (c.sort_order ?? 0)
+  );
+  const sel0 = sels[0] ?? {};
+  const isMulti = b.bet_type !== "Single";
+  const combinedOdds = sels.reduce((acc, s) => acc * Number(s.odds), 1);
+  const colorIdx = name.charCodeAt(0) % AVATAR_COLORS.length;
+
+  return {
+    id: b.id,
+    name,
+    initials: name.slice(0, 2).toUpperCase(),
+    color: AVATAR_COLORS[colorIdx],
+    verified: false,
+    sportEmoji: SPORT_EMOJI[sel0.sport] ?? "🎱",
+    sportLabel: sel0.sport ?? "",
+    league: isMulti ? `${b.bet_type} · ${sels.length} selections` : (sel0.market || ""),
+    match: isMulti ? sels.map((s) => s.match.split(" – ")[0]).join(" + ") : (sel0.match || ""),
+    date: new Date(b.date).toLocaleDateString("en-GB", { weekday: "short", day: "2-digit", month: "short" }),
+    analysis: b.analysis || "",
+    pick: isMulti ? sels.map((s) => s.line || s.match).join(" + ") : (sel0.line || sel0.market || sel0.match || ""),
+    odds: isMulti ? combinedOdds : Number(sel0.odds),
+    stake: Number(b.stake),
+    bookmaker: b.bookmaker || "",
+    referralLink: b.referral_link || null,
+    betType: b.bet_type,
+    legs: sels.map((s) => ({ match: s.match, market: s.market, line: s.line ?? "", odds: Number(s.odds) })),
+  };
+}
+
 // Fetch all bets for the logged-in user
 export async function fetchMyBets(): Promise<Bet[]> {
   const supabase = createClient();

@@ -90,6 +90,7 @@ const FEED = [
 const SPORTS_FILTER = ["All", "⚽ Football", "🎾 Tennis", "🐎 Trotting", "🏀 Basketball"];
 
 type FeedTip = {
+  id?: string;
   tipster: { name: string; initials: string; color: string; verified: boolean };
   sport: string; league: string; match: string; date: string;
   analysis: string; pick: string; odds: number; stake: number;
@@ -302,8 +303,18 @@ function FeedRow({ tip, stakeLabel, isLast }: {
           </a>
         </div>
 
-        <div style={{ marginTop: 8, color: "var(--text-4)", fontFamily: "var(--mono)", fontSize: 10.5 }}>
-          {tip.posted}
+        <div style={{ marginTop: 8, display: "flex", alignItems: "center", gap: 12 }}>
+          <span style={{ color: "var(--text-4)", fontFamily: "var(--mono)", fontSize: 10.5 }}>{tip.posted}</span>
+          {tip.id && (
+            <a
+              href={`/tip/${tip.id}`}
+              style={{ color: "var(--text-3)", fontFamily: "var(--mono)", fontSize: 10.5, textDecoration: "none" }}
+              onMouseEnter={e => (e.currentTarget as HTMLElement).style.color = "var(--accent)"}
+              onMouseLeave={e => (e.currentTarget as HTMLElement).style.color = "var(--text-3)"}
+            >
+              ↗ Share
+            </a>
+          )}
         </div>
       </div>
 
