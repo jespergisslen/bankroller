@@ -4,6 +4,7 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { createClient } from "@/lib/supabase";
+import { validateUsername } from "@/lib/usernameRules";
 
 export default function RegisterPage() {
   const router = useRouter();
@@ -15,6 +16,8 @@ export default function RegisterPage() {
 
   const handleRegister = async (e: React.FormEvent) => {
     e.preventDefault();
+    const invalidUsername = validateUsername(username);
+    if (invalidUsername) { setError(invalidUsername); return; }
     setLoading(true);
     setError(null);
     const supabase = createClient();
@@ -22,7 +25,7 @@ export default function RegisterPage() {
       email,
       password,
       options: {
-        data: { username, display_name: username },
+        data: { username: username.trim().toLowerCase(), display_name: username.trim() },
       },
     });
     if (error) {

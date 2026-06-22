@@ -1,4 +1,5 @@
 import { createClient } from "./supabase";
+import { validateUsername } from "./usernameRules";
 
 export interface Persona {
   id: string;
@@ -48,9 +49,8 @@ export async function createPersona(params: {
   if (!user) return { error: "Not logged in", id: null };
 
   const username = params.username.trim().toLowerCase();
-  if (!/^[a-z0-9_]{3,20}$/.test(username)) {
-    return { error: "Username must be 3–20 chars: letters, numbers, underscore.", id: null };
-  }
+  const invalid = validateUsername(username);
+  if (invalid) return { error: invalid, id: null };
 
   const { data, error } = await supabase
     .from("profiles")
