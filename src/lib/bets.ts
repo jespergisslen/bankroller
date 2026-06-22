@@ -52,24 +52,31 @@ export interface PublicTip {
   posted: string;
 }
 
-// Fetch all public bets (the community feed)
+// Fetch all public bets (the community feed).
+// Uses raw REST (anon) — public data needs no auth, and this avoids the
+// supabase-js browser client awaiting the GoTrue auth lock (which can hang).
 export async function fetchPublicBets(): Promise<PublicTip[]> {
-  const supabase = createClient();
-  const { data: betsData, error } = await supabase
-    .from("bets")
-    .select("*, selections(*)")
-    .eq("is_public", true)
-    .order("created_at", { ascending: false });
+  const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
+  const key = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
+  if (!url || !key) return [];
+  const headers = { apikey: key, Authorization: `Bearer ${key}` };
 
-  if (error || !betsData) return [];
+  const betsRes = await fetch(
+    `${url}/rest/v1/bets?is_public=eq.true&select=*,selections(*)&order=created_at.desc`,
+    { headers, cache: "no-store" }
+  );
+  if (!betsRes.ok) return [];
+  const betsData = (await betsRes.json()) as any[];
+  if (!betsData?.length) return [];
 
   // Fetch author profiles (the persona that posted each tip)
   const profileIds = [...new Set(betsData.map((b) => b.profile_id || b.user_id))];
-  const { data: profiles } = await supabase
-    .from("profiles")
-    .select("id, username, display_name")
-    .in("id", profileIds);
-  const profileMap = new Map((profiles ?? []).map((p) => [p.id, p]));
+  const profRes = await fetch(
+    `${url}/rest/v1/profiles?id=in.(${profileIds.join(",")})&select=id,username,display_name`,
+    { headers, cache: "no-store" }
+  );
+  const profiles = profRes.ok ? ((await profRes.json()) as any[]) : [];
+  const profileMap = new Map(profiles.map((p) => [p.id, p]));
 
   return betsData.map((b) => {
     const sels = (b.selections as Selection[] & { sort_order?: number }[])
