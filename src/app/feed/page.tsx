@@ -41,14 +41,17 @@ export default function FeedPage() {
   const [realTips, setRealTips] = useState<PublicTip[]>([]);
   const [loaded, setLoaded] = useState(false);
   const [topTipsters, setTopTipsters] = useState<TipsterRank[]>([]);
+  const [debug, setDebug] = useState("init");
 
   useEffect(() => {
     createClient().auth.getUser().then(({ data }) => setIsLoggedIn(!!data.user));
     fetchPublicBets()
-      .then(setRealTips)
-      .catch(() => setRealTips([]))
+      .then((t) => { setRealTips(t); setDebug(`tips=${t.length}`); })
+      .catch((e) => { setRealTips([]); setDebug(`ERR ${e?.message || e}`); })
       .finally(() => setLoaded(true));
-    getTopTipsters(6).then(setTopTipsters).catch(() => setTopTipsters([]));
+    getTopTipsters(6)
+      .then((t) => { setTopTipsters(t); setDebug((d) => d + ` | tipsters=${t.length}`); })
+      .catch((e) => { setTopTipsters([]); setDebug((d) => d + ` | tipstersERR ${e?.message || e}`); });
   }, []);
 
   const requireAuth = () => {
@@ -62,6 +65,9 @@ export default function FeedPage() {
 
   return (
     <div className="fade-in">
+      <div style={{ fontFamily: "var(--mono)", fontSize: 11, color: "var(--warn)", marginBottom: 10, wordBreak: "break-all" }}>
+        debug: loaded={String(loaded)} · {debug}
+      </div>
       {/* Page head */}
       <div style={{ display: "flex", alignItems: "flex-start", justifyContent: "space-between", marginBottom: 24, gap: 16 }}>
         <div>
