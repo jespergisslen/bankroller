@@ -9,7 +9,15 @@ export function createClient() {
   if (!client) {
     client = createBrowserClient(
       process.env.NEXT_PUBLIC_SUPABASE_URL!,
-      process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
+      process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
+      {
+        auth: {
+          // Disable the Web Locks-based auth lock. Concurrent getUser()/query
+          // calls were deadlocking on it in the browser, hanging the topbar,
+          // dashboard guard and fetchMyBets. A no-op lock just runs the fn.
+          lock: async (_name, _acquireTimeout, fn) => fn(),
+        },
+      }
     );
   }
   return client;
