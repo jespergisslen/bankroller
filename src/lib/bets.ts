@@ -405,7 +405,8 @@ export async function listTipsterUsernames(): Promise<string[]> {
 // Fetch all bets for the logged-in user
 export async function fetchMyBets(profileId?: string): Promise<Bet[]> {
   const supabase = createClient();
-  const { data: { user } } = await supabase.auth.getUser();
+  const { data: { session } } = await supabase.auth.getSession();
+  const user = session?.user ?? null;
   if (!user) return [];
   let query = supabase
     .from("bets")
@@ -457,7 +458,8 @@ export async function saveBet(params: {
   selections: Omit<Selection, "closingOdds">[];
 }): Promise<{ error: string | null }> {
   const supabase = createClient();
-  const { data: { user } } = await supabase.auth.getUser();
+  const { data: { session } } = await supabase.auth.getSession();
+  const user = session?.user ?? null;
   if (!user) return { error: "Not logged in" };
 
   const { data: bet, error: betError } = await supabase

@@ -59,14 +59,23 @@ export function Topbar() {
 
   useEffect(() => {
     const supabase = createClient();
-    supabase.auth.getUser().then(({ data }) => {
-      setUser(data.user);
+    let mounted = true;
+    // getSession() reads the stored session instantly (no network round-trip),
+    // so the UI can't get stuck. onAuthStateChange fires INITIAL_SESSION right
+    // away too — two independent paths that both clear loadingUser.
+    supabase.auth.getSession()
+      .then(({ data }) => {
+        if (!mounted) return;
+        setUser(data.session?.user ?? null);
+        setLoadingUser(false);
+      })
+      .catch(() => { if (mounted) setLoadingUser(false); });
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
+      if (!mounted) return;
+      setUser(session?.user ?? null);
       setLoadingUser(false);
     });
-    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
-      setUser(session?.user ?? null);
-    });
-    return () => subscription.unsubscribe();
+    return () => { mounted = false; subscription.unsubscribe(); };
   }, []);
 
   const handleSignOut = async () => {

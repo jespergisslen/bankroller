@@ -33,9 +33,9 @@ export default function ProfilePage() {
   const [showCreate, setShowCreate] = useState(false);
 
   useEffect(() => {
-    createClient().auth.getUser().then(({ data }) => {
-      if (!data.user) router.replace("/login");
-    });
+    createClient().auth.getSession()
+      .then(({ data }) => { if (!data.session?.user) router.replace("/login"); })
+      .catch(() => {});
   }, [router]);
 
   // Sync form to the active persona whenever it changes.

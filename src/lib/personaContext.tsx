@@ -39,11 +39,16 @@ export function PersonaProvider({ children }: { children: React.ReactNode }) {
 
   useEffect(() => {
     const supabase = createClient();
-    supabase.auth.getUser().then(({ data }) => {
-      if (data.user) refresh();
+    supabase.auth.getSession()
+      .then(({ data }) => {
+        if (data.session?.user) refresh();
+        else { setPersonas([]); setActiveIdState(null); setLoading(false); }
+      })
+      .catch(() => { setPersonas([]); setActiveIdState(null); setLoading(false); });
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((_e, session) => {
+      if (session?.user) refresh();
       else { setPersonas([]); setActiveIdState(null); setLoading(false); }
     });
-    const { data: { subscription } } = supabase.auth.onAuthStateChange(() => refresh());
     return () => subscription.unsubscribe();
   }, [refresh]);
 

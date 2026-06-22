@@ -11,7 +11,8 @@ export interface Persona {
 // All personas owned by the logged-in user (primary + brand profiles).
 export async function fetchMyPersonas(): Promise<Persona[]> {
   const supabase = createClient();
-  const { data: { user } } = await supabase.auth.getUser();
+  const { data: { session } } = await supabase.auth.getSession();
+  const user = session?.user ?? null;
   if (!user) return [];
   const { data } = await supabase
     .from("profiles")
@@ -45,7 +46,8 @@ export async function createPersona(params: {
   displayName: string;
 }): Promise<{ error: string | null; id: string | null }> {
   const supabase = createClient();
-  const { data: { user } } = await supabase.auth.getUser();
+  const { data: { session } } = await supabase.auth.getSession();
+  const user = session?.user ?? null;
   if (!user) return { error: "Not logged in", id: null };
 
   const username = params.username.trim().toLowerCase();
