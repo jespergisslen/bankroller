@@ -5,7 +5,7 @@ import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { createClient } from "@/lib/supabase";
 import { usePersona } from "@/lib/personaContext";
-import { updatePersona, createPersona } from "@/lib/personas";
+import { updatePersona, createPersona, MAX_PERSONAS } from "@/lib/personas";
 
 const BIO_MAX = 240;
 
@@ -142,8 +142,10 @@ export default function ProfilePage() {
       {/* Profiles list + create */}
       <div className="panel" style={{ marginTop: 16, padding: "var(--pad)" }}>
         <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 14 }}>
-          <div style={{ fontWeight: 600, fontSize: 14 }}>Your profiles</div>
-          <button className="btn sm" onClick={() => setShowCreate(s => !s)}>{showCreate ? "Cancel" : "+ New profile"}</button>
+          <div style={{ fontWeight: 600, fontSize: 14 }}>Your profiles <span style={{ color: "var(--text-4)", fontFamily: "var(--mono)", fontSize: 11, fontWeight: 400 }}>{personas.length}/{MAX_PERSONAS}</span></div>
+          {personas.length < MAX_PERSONAS && (
+            <button className="btn sm" onClick={() => setShowCreate(s => !s)}>{showCreate ? "Cancel" : "+ New profile"}</button>
+          )}
         </div>
 
         <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
@@ -194,7 +196,7 @@ export default function ProfilePage() {
         )}
 
         <div style={{ marginTop: 16, paddingTop: 14, borderTop: "1px solid var(--line)", color: "var(--text-4)", fontFamily: "var(--mono)", fontSize: 11, lineHeight: 1.6 }}>
-          One login can hold multiple profiles — e.g. your personal handle and a brand. Avatar uploads coming soon; initials shown for now.
+          One login can hold up to {MAX_PERSONAS} profiles — e.g. your personal handle and a brand. Avatar uploads coming soon; initials shown for now.
         </div>
       </div>
     </div>

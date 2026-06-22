@@ -1,6 +1,9 @@
 import { createClient } from "./supabase";
 import { validateUsername } from "./usernameRules";
 
+// Maximum profiles (personas) a single user can own.
+export const MAX_PERSONAS = 2;
+
 export interface Persona {
   id: string;
   username: string;
@@ -49,6 +52,15 @@ export async function createPersona(params: {
   const { data: { session } } = await supabase.auth.getSession();
   const user = session?.user ?? null;
   if (!user) return { error: "Not logged in", id: null };
+
+  // Cap at MAX_PERSONAS profiles per user.
+  const { count } = await supabase
+    .from("profiles")
+    .select("id", { count: "exact", head: true })
+    .eq("owner_id", user.id);
+  if ((count ?? 0) >= MAX_PERSONAS) {
+    return { error: `You can have at most ${MAX_PERSONAS} profiles.`, id: null };
+  }
 
   const username = params.username.trim().toLowerCase();
   const invalid = validateUsername(username);

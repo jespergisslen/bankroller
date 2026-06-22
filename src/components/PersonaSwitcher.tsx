@@ -3,6 +3,7 @@
 import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import { usePersona } from "@/lib/personaContext";
+import { MAX_PERSONAS } from "@/lib/personas";
 
 function initialsOf(p: { displayName: string; username: string }) {
   return (p.displayName || p.username || "??").slice(0, 2).toUpperCase();
@@ -87,9 +88,11 @@ export function PersonaSwitcher({ fallbackInitials, onSignOut }: {
           })}
 
           <div style={{ borderTop: "1px solid var(--line)" }}>
-            <Link href="/profile" onClick={() => setOpen(false)} style={{ display: "block", padding: "9px 12px", fontFamily: "var(--mono)", fontSize: 12, color: "var(--text-2)", textDecoration: "none" }}>
-              + New profile
-            </Link>
+            {personas.length < MAX_PERSONAS && (
+              <Link href="/profile" onClick={() => setOpen(false)} style={{ display: "block", padding: "9px 12px", fontFamily: "var(--mono)", fontSize: 12, color: "var(--text-2)", textDecoration: "none" }}>
+                + New profile
+              </Link>
+            )}
             <button
               onClick={() => { setOpen(false); onSignOut(); }}
               style={{ width: "100%", padding: "9px 12px", background: "none", border: "none", borderTop: "1px solid var(--line)", cursor: "pointer", textAlign: "left", fontFamily: "var(--mono)", fontSize: 12, color: "var(--text-3)" }}
