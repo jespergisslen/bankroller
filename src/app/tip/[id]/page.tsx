@@ -3,6 +3,7 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { getPublicTip } from "@/lib/bets";
 import { ShareBar } from "@/components/ShareBar";
+import { SITE_URL } from "@/lib/site";
 
 type Params = { params: Promise<{ id: string }> };
 
@@ -14,10 +15,14 @@ export async function generateMetadata({ params }: Params): Promise<Metadata> {
   const description = tip.analysis
     ? tip.analysis.slice(0, 200)
     : `${tip.name}'s pick on Bankroller — ${tip.pick} at ${tip.odds.toFixed(2)}.`;
+  const hasAnalysis = !!tip.analysis?.trim();
   return {
     title: `${title} · Bankroller`,
     description,
-    openGraph: { title, description, type: "article" },
+    alternates: { canonical: `/tip/${id}` },
+    // Thin tips (no analysis) stay out of the index but remain crawlable for links.
+    robots: hasAnalysis ? undefined : { index: false, follow: true },
+    openGraph: { title, description, type: "article", url: `/tip/${id}` },
     twitter: { card: "summary_large_image", title, description },
   };
 }
@@ -29,8 +34,29 @@ export default async function TipPage({ params }: Params) {
 
   const shareText = `${tip.match} — ${tip.pick} @ ${tip.odds.toFixed(2)} (${tip.name} on Bankroller)`;
 
+  const jsonLd = {
+    "@context": "https://schema.org",
+    "@type": "Article",
+    headline: `${tip.match} — ${tip.pick} @ ${tip.odds.toFixed(2)}`,
+    ...(tip.analysis ? { articleBody: tip.analysis } : {}),
+    datePublished: tip.isoDate,
+    author: { "@type": "Person", name: tip.name },
+    publisher: { "@type": "Organization", name: "Bankroller", url: SITE_URL },
+    about: {
+      "@type": "SportsEvent",
+      name: tip.match,
+      startDate: tip.isoDate,
+      ...(tip.league ? { description: tip.league } : {}),
+    },
+    url: `${SITE_URL}/tip/${tip.id}`,
+  };
+
   return (
     <div className="fade-in" style={{ maxWidth: 720, margin: "0 auto" }}>
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
+      />
       <Link href="/feed" style={{ textDecoration: "none", color: "var(--text-3)", fontFamily: "var(--mono)", fontSize: 12 }}>
         ← Back to feed
       </Link>

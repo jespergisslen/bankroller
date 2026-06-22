@@ -2,8 +2,10 @@ import type { Metadata } from "next";
 import "./globals.css";
 import { Topbar } from "@/components/Topbar";
 import { CurrencyProvider } from "@/lib/currencyContext";
+import { SITE_URL } from "@/lib/site";
 
 export const metadata: Metadata = {
+  metadataBase: new URL(SITE_URL),
   title: "Bankroller",
   description: "The terminal for serious bettors.",
 };

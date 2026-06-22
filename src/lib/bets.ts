@@ -102,6 +102,7 @@ export interface TipData {
   league: string;
   match: string;
   date: string;
+  isoDate: string;
   analysis: string;
   pick: string;
   odds: number;
@@ -110,6 +111,28 @@ export interface TipData {
   referralLink: string | null;
   betType: string;
   legs: { match: string; market: string; line: string; odds: number }[];
+}
+
+// List all public tips (id + dates + whether they carry analysis) for the sitemap.
+// Server-safe (REST + fetch).
+export async function listPublicTips(): Promise<
+  { id: string; updatedAt: string; hasAnalysis: boolean }[]
+> {
+  const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
+  const key = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
+  if (!url || !key) return [];
+  const headers = { apikey: key, Authorization: `Bearer ${key}` };
+  const res = await fetch(
+    `${url}/rest/v1/bets?is_public=eq.true&select=id,created_at,analysis&order=created_at.desc`,
+    { headers, cache: "no-store" }
+  );
+  if (!res.ok) return [];
+  const rows = await res.json();
+  return (rows as any[]).map((b) => ({
+    id: b.id,
+    updatedAt: b.created_at,
+    hasAnalysis: !!(b.analysis && String(b.analysis).trim().length > 0),
+  }));
 }
 
 // Fetch a single public tip by id — works server-side (REST + fetch), no browser deps.
@@ -155,6 +178,7 @@ export async function getPublicTip(id: string): Promise<TipData | null> {
     league: isMulti ? `${b.bet_type} · ${sels.length} selections` : (sel0.market || ""),
     match: isMulti ? sels.map((s) => s.match.split(" – ")[0]).join(" + ") : (sel0.match || ""),
     date: new Date(b.date).toLocaleDateString("en-GB", { weekday: "short", day: "2-digit", month: "short" }),
+    isoDate: b.date,
     analysis: b.analysis || "",
     pick: isMulti ? sels.map((s) => s.line || s.match).join(" + ") : (sel0.line || sel0.market || sel0.match || ""),
     odds: isMulti ? combinedOdds : Number(sel0.odds),
