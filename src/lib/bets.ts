@@ -295,6 +295,85 @@ export async function getTipsterProfile(username: string): Promise<TipsterProfil
   };
 }
 
+export interface TipsterRank {
+  username: string;
+  name: string;
+  initials: string;
+  color: string;
+  tips: number;
+  settled: number;
+  wins: number;
+  winRate: number | null;
+  netUnits: number;
+  yieldPct: number | null;
+}
+
+// Rank public tipsters by track record from their settled public tips. Server-safe.
+export async function getTopTipsters(limit = 10): Promise<TipsterRank[]> {
+  const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
+  const key = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
+  if (!url || !key) return [];
+  const headers = { apikey: key, Authorization: `Bearer ${key}` };
+
+  const betsRes = await fetch(
+    `${url}/rest/v1/bets?is_public=eq.true&select=profile_id,user_id,result,profit,stake`,
+    { headers, cache: "no-store" }
+  );
+  if (!betsRes.ok) return [];
+  const bets = (await betsRes.json()) as any[];
+  if (!bets.length) return [];
+
+  const agg = new Map<string, { tips: number; settled: number; wins: number; net: number; staked: number }>();
+  for (const b of bets) {
+    const pid = b.profile_id || b.user_id;
+    const a = agg.get(pid) ?? { tips: 0, settled: 0, wins: 0, net: 0, staked: 0 };
+    a.tips += 1;
+    if (b.result === "win" || b.result === "loss" || b.result === "void") {
+      a.settled += 1;
+      a.staked += Number(b.stake) || 0;
+      a.net += b.profit !== null ? Number(b.profit) : 0;
+      if (b.result === "win") a.wins += 1;
+    }
+    agg.set(pid, a);
+  }
+
+  const ids = [...agg.keys()];
+  const profRes = await fetch(
+    `${url}/rest/v1/profiles?id=in.(${ids.join(",")})&select=id,username,display_name`,
+    { headers, cache: "no-store" }
+  );
+  const profs = profRes.ok ? ((await profRes.json()) as any[]) : [];
+  const profMap = new Map(profs.map((p) => [p.id, p]));
+
+  const ranked: TipsterRank[] = ids.map((pid) => {
+    const a = agg.get(pid)!;
+    const prof = profMap.get(pid);
+    const name = prof?.display_name || prof?.username || "Anonymous";
+    const colorIdx = name.charCodeAt(0) % AVATAR_COLORS.length;
+    return {
+      username: prof?.username || "",
+      name,
+      initials: name.slice(0, 2).toUpperCase(),
+      color: AVATAR_COLORS[colorIdx],
+      tips: a.tips,
+      settled: a.settled,
+      wins: a.wins,
+      winRate: a.settled ? Math.round((a.wins / a.settled) * 100) : null,
+      netUnits: a.net,
+      yieldPct: a.staked > 0 ? (a.net / a.staked) * 100 : null,
+    };
+  }).filter((t) => t.username);
+
+  // Tipsters with a settled record rank first (by yield), then the rest by tip volume.
+  ranked.sort((x, y) => {
+    if ((y.yieldPct ?? -Infinity) !== (x.yieldPct ?? -Infinity))
+      return (y.yieldPct ?? -Infinity) - (x.yieldPct ?? -Infinity);
+    return y.tips - x.tips;
+  });
+
+  return ranked.slice(0, limit);
+}
+
 // List usernames that have published at least one public tip (for the sitemap).
 export async function listTipsterUsernames(): Promise<string[]> {
   const url = process.env.NEXT_PUBLIC_SUPABASE_URL;

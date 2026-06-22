@@ -4,17 +4,9 @@ import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { useCurrency } from "@/lib/currencyContext";
 import { createClient } from "@/lib/supabase";
-import { fetchPublicBets, type PublicTip } from "@/lib/bets";
+import { fetchPublicBets, getTopTipsters, type PublicTip, type TipsterRank } from "@/lib/bets";
 import { ShareModal } from "@/components/ShareModal";
-
-const TIPSTERS = [
-  { id: "vh",  name: "ValueHunter", initials: "VH", color: "#00e5a0", verified: true,  yield: 12.4, tips: 612  },
-  { id: "xg",  name: "xG_Machine",  initials: "XG", color: "#5ad1ff", verified: true,  yield: 9.8,  tips: 488  },
-  { id: "ace", name: "AceServe",    initials: "AS", color: "#e6b23a", verified: true,  yield: 8.1,  tips: 295  },
-  { id: "gr",  name: "GreenRoom",   initials: "GR", color: "#b48cff", verified: false, yield: 6.5,  tips: 188  },
-  { id: "tt",  name: "TravTanten",  initials: "TT", color: "#ff7a7a", verified: true,  yield: 5.2,  tips: 522  },
-  { id: "sl",  name: "SharpLines",  initials: "SL", color: "#00e5a0", verified: true,  yield: 4.9,  tips: 210  },
-];
+import Link from "next/link";
 
 const BOOKIE_LINKS: Record<string, string> = {
   "Bet365":       "https://www.bet365.com",
@@ -48,6 +40,7 @@ export default function FeedPage() {
   const [isLoggedIn, setIsLoggedIn] = useState(false);
   const [realTips, setRealTips] = useState<PublicTip[]>([]);
   const [loaded, setLoaded] = useState(false);
+  const [topTipsters, setTopTipsters] = useState<TipsterRank[]>([]);
 
   useEffect(() => {
     createClient().auth.getUser().then(({ data }) => setIsLoggedIn(!!data.user));
@@ -55,6 +48,7 @@ export default function FeedPage() {
       .then(setRealTips)
       .catch(() => setRealTips([]))
       .finally(() => setLoaded(true));
+    getTopTipsters(6).then(setTopTipsters).catch(() => setTopTipsters([]));
   }, []);
 
   const requireAuth = () => {
@@ -113,19 +107,23 @@ export default function FeedPage() {
 
         {/* Right rail */}
         <div className="feed-sidebar" style={{ display: "flex", flexDirection: "column", gap: 16 }}>
-          {/* Leaderboard */}
+          {/* Leaderboard — real tipsters by yield */}
           <div className="panel">
             <div style={{ padding: "14px var(--pad)", borderBottom: "1px solid var(--line)", fontWeight: 600, fontSize: 13 }}>
               Top tipsters · yield
             </div>
             <div style={{ padding: "8px 0" }}>
-              {TIPSTERS.map((t, i) => (
-                <div key={t.id} style={{
+              {topTipsters.length === 0 ? (
+                <div style={{ padding: "20px var(--pad)", color: "var(--text-3)", fontFamily: "var(--mono)", fontSize: 11.5 }}>
+                  No ranked tipsters yet.
+                </div>
+              ) : topTipsters.map((t, i) => (
+                <Link key={t.username} href={`/u/${t.username}`} style={{
                   display: "grid", gridTemplateColumns: "26px 32px 1fr auto",
                   alignItems: "center", gap: 10,
                   padding: "9px var(--pad)",
-                  borderBottom: i < TIPSTERS.length - 1 ? "1px solid var(--line)" : "none",
-                  cursor: "pointer", transition: "background 0.1s",
+                  borderBottom: i < topTipsters.length - 1 ? "1px solid var(--line)" : "none",
+                  textDecoration: "none", color: "inherit", transition: "background 0.1s",
                 }}
                   onMouseEnter={e => (e.currentTarget as HTMLElement).style.background = "rgba(255,255,255,0.02)"}
                   onMouseLeave={e => (e.currentTarget as HTMLElement).style.background = "transparent"}
@@ -139,17 +137,20 @@ export default function FeedPage() {
                     display: "flex", alignItems: "center", justifyContent: "center",
                     fontFamily: "var(--mono)", fontSize: 11, fontWeight: 600, color: t.color,
                   }}>{t.initials}</div>
-                  <div>
-                    <div style={{ fontSize: 13, fontWeight: 500 }}>
-                      {t.name}
-                      {t.verified && <span style={{ color: "var(--accent)", marginLeft: 4, fontSize: 11 }}>✓</span>}
-                    </div>
+                  <div style={{ minWidth: 0 }}>
+                    <div style={{ fontSize: 13, fontWeight: 500, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{t.name}</div>
                     <div style={{ color: "var(--text-3)", fontFamily: "var(--mono)", fontSize: 10.5, marginTop: 1 }}>
-                      {t.tips} tips
+                      {t.tips} tip{t.tips === 1 ? "" : "s"}
                     </div>
                   </div>
-                  <div className="num pos glow" style={{ fontSize: 13.5, fontWeight: 600 }}>+{t.yield}%</div>
-                </div>
+                  {t.yieldPct !== null ? (
+                    <div className={`num ${t.yieldPct >= 0 ? "pos glow" : "neg"}`} style={{ fontSize: 13.5, fontWeight: 600 }}>
+                      {t.yieldPct >= 0 ? "+" : ""}{t.yieldPct.toFixed(1)}%
+                    </div>
+                  ) : (
+                    <div style={{ fontFamily: "var(--mono)", fontSize: 10.5, color: "var(--text-4)" }}>—</div>
+                  )}
+                </Link>
               ))}
             </div>
           </div>
