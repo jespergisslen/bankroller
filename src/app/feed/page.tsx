@@ -190,15 +190,24 @@ function FeedRow({ tip, stakeLabel, isLast }: {
       onMouseEnter={e => (e.currentTarget as HTMLElement).style.background = "rgba(255,255,255,0.015)"}
       onMouseLeave={e => (e.currentTarget as HTMLElement).style.background = "transparent"}
     >
-      {/* Avatar */}
-      <div style={{
-        width: 44, height: 44, borderRadius: 11,
-        background: tip.tipster.color + "22",
-        border: `1px solid ${tip.tipster.color}44`,
-        display: "flex", alignItems: "center", justifyContent: "center",
-        fontFamily: "var(--mono)", fontSize: 13, fontWeight: 700, color: tip.tipster.color,
-        flexShrink: 0,
-      }}>{tip.tipster.initials}</div>
+      {/* Avatar — links to the tipster's profile */}
+      {(() => {
+        const avatar = (
+          <div style={{
+            width: 44, height: 44, borderRadius: 11,
+            background: tip.tipster.color + "22",
+            border: `1px solid ${tip.tipster.color}44`,
+            display: "flex", alignItems: "center", justifyContent: "center",
+            fontFamily: "var(--mono)", fontSize: 13, fontWeight: 700, color: tip.tipster.color,
+            flexShrink: 0,
+          }}>{tip.tipster.initials}</div>
+        );
+        return tip.tipster.username ? (
+          <a href={`/u/${tip.tipster.username}`} aria-label={`${tip.tipster.name}'s profile`} style={{ textDecoration: "none", flexShrink: 0 }}>
+            {avatar}
+          </a>
+        ) : avatar;
+      })()}
 
       {/* Body */}
       <div>
