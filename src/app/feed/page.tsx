@@ -92,7 +92,8 @@ const SPORTS_FILTER = ["All", "⚽ Football", "🎾 Tennis", "🐎 Trotting", "�
 
 type FeedTip = {
   id?: string;
-  tipster: { name: string; initials: string; color: string; verified: boolean };
+  slug?: string;
+  tipster: { name: string; username?: string; initials: string; color: string; verified: boolean };
   sport: string; league: string; match: string; date: string;
   analysis: string; pick: string; odds: number; stake: number;
   bookmaker: string; referralLink?: string | null; postedYield: number | null;
@@ -227,6 +228,7 @@ function FeedRow({ tip, stakeLabel, isLast }: {
   const [shareOpen, setShareOpen] = useState(false);
   const bookieUrl = tip.referralLink || BOOKIE_LINKS[tip.bookmaker] || "#";
   const shareText = `${tip.match} — ${tip.pick} @ ${tip.odds.toFixed(2)} (${tip.tipster.name} on Bankroller)`;
+  const shareId = tip.slug || tip.id;
   const stakeDisplay = `${tip.stake}${stakeLabel === "u" ? "u" : " " + stakeLabel}`;
 
   return (
@@ -252,7 +254,13 @@ function FeedRow({ tip, stakeLabel, isLast }: {
       {/* Body */}
       <div>
         <div style={{ display: "flex", alignItems: "center", gap: 6, marginBottom: 4, flexWrap: "wrap" }}>
-          <span style={{ fontWeight: 600, fontSize: 13.5 }}>{tip.tipster.name}</span>
+          {tip.tipster.username ? (
+            <a href={`/u/${tip.tipster.username}`} style={{ fontWeight: 600, fontSize: 13.5, color: "var(--text)", textDecoration: "none" }}>
+              {tip.tipster.name}
+            </a>
+          ) : (
+            <span style={{ fontWeight: 600, fontSize: 13.5 }}>{tip.tipster.name}</span>
+          )}
           {tip.tipster.verified && (
             <span title="Verified tipster" style={{ color: "var(--accent)", fontSize: 11 }}>✓</span>
           )}
@@ -308,7 +316,7 @@ function FeedRow({ tip, stakeLabel, isLast }: {
 
         <div style={{ marginTop: 10, display: "flex", alignItems: "center", gap: 12 }}>
           <span style={{ color: "var(--text-4)", fontFamily: "var(--mono)", fontSize: 10.5 }}>{tip.posted}</span>
-          {tip.id && (
+          {shareId && (
             <button
               onClick={() => setShareOpen(true)}
               className="btn sm"
@@ -322,8 +330,8 @@ function FeedRow({ tip, stakeLabel, isLast }: {
             </button>
           )}
         </div>
-        {shareOpen && tip.id && (
-          <ShareModal tipId={tip.id} shareText={shareText} onClose={() => setShareOpen(false)} />
+        {shareOpen && shareId && (
+          <ShareModal tipId={shareId} shareText={shareText} onClose={() => setShareOpen(false)} />
         )}
       </div>
 

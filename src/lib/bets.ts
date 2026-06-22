@@ -7,6 +7,21 @@ const SPORT_EMOJI: Record<string, string> = {
 };
 const AVATAR_COLORS = ["#00e5a0", "#5ad1ff", "#e6b23a", "#b48cff", "#ff7a7a"];
 
+// Readable, URL-safe slug from arbitrary text.
+export function slugify(s: string): string {
+  return s
+    .toLowerCase()
+    .normalize("NFKD")
+    .replace(/[^a-z0-9\s-]/g, "")
+    .trim()
+    .replace(/\s+/g, "-")
+    .replace(/-+/g, "-")
+    .slice(0, 60)
+    .replace(/-$/, "");
+}
+
+const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+
 function relativeTime(iso: string): string {
   const then = new Date(iso).getTime();
   const diff = Date.now() - then;
@@ -21,7 +36,8 @@ function relativeTime(iso: string): string {
 
 export interface PublicTip {
   id: string;
-  tipster: { name: string; initials: string; color: string; verified: boolean };
+  slug: string;
+  tipster: { name: string; username: string; initials: string; color: string; verified: boolean };
   sport: string;       // emoji
   league: string;
   match: string;
@@ -74,7 +90,8 @@ export async function fetchPublicBets(): Promise<PublicTip[]> {
 
     return {
       id: b.id,
-      tipster: { name, initials, color: AVATAR_COLORS[colorIdx], verified: false },
+      slug: b.slug || b.id,
+      tipster: { name, username: prof?.username || "", initials, color: AVATAR_COLORS[colorIdx], verified: false },
       sport: SPORT_EMOJI[sel0.sport] ?? sel0.sport ?? "🎱",
       league: isMulti ? `${b.bet_type} · ${sels.length} selections` : (sel0.market || ""),
       match: isMulti ? sels.map((s: any) => s.match.split(" – ")[0]).join(" + ") : sel0.match,
@@ -93,7 +110,9 @@ export async function fetchPublicBets(): Promise<PublicTip[]> {
 
 export interface TipData {
   id: string;
+  slug: string;
   name: string;
+  username: string;
   initials: string;
   color: string;
   verified: boolean;
@@ -116,35 +135,39 @@ export interface TipData {
 // List all public tips (id + dates + whether they carry analysis) for the sitemap.
 // Server-safe (REST + fetch).
 export async function listPublicTips(): Promise<
-  { id: string; updatedAt: string; hasAnalysis: boolean }[]
+  { id: string; slug: string; updatedAt: string; hasAnalysis: boolean }[]
 > {
   const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
   const key = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
   if (!url || !key) return [];
   const headers = { apikey: key, Authorization: `Bearer ${key}` };
   const res = await fetch(
-    `${url}/rest/v1/bets?is_public=eq.true&select=id,created_at,analysis&order=created_at.desc`,
+    `${url}/rest/v1/bets?is_public=eq.true&select=id,slug,created_at,analysis&order=created_at.desc`,
     { headers, cache: "no-store" }
   );
   if (!res.ok) return [];
   const rows = await res.json();
   return (rows as any[]).map((b) => ({
     id: b.id,
+    slug: b.slug || b.id,
     updatedAt: b.created_at,
     hasAnalysis: !!(b.analysis && String(b.analysis).trim().length > 0),
   }));
 }
 
-// Fetch a single public tip by id — works server-side (REST + fetch), no browser deps.
-// Used by the public /tip/[id] page and its dynamic OG image.
-export async function getPublicTip(id: string): Promise<TipData | null> {
+// Fetch a single public tip by slug (or legacy UUID) — works server-side (REST + fetch).
+// Used by the public /tip/[slug] page and its dynamic OG image.
+export async function getPublicTip(slugOrId: string): Promise<TipData | null> {
   const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
   const key = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
   if (!url || !key) return null;
   const headers = { apikey: key, Authorization: `Bearer ${key}` };
 
+  const matchCol = UUID_RE.test(slugOrId)
+    ? `id=eq.${slugOrId}`
+    : `slug=eq.${encodeURIComponent(slugOrId)}`;
   const betRes = await fetch(
-    `${url}/rest/v1/bets?id=eq.${id}&is_public=eq.true&select=*,selections(*)`,
+    `${url}/rest/v1/bets?${matchCol}&is_public=eq.true&select=*,selections(*)`,
     { headers, cache: "no-store" }
   );
   if (!betRes.ok) return null;
@@ -169,7 +192,9 @@ export async function getPublicTip(id: string): Promise<TipData | null> {
 
   return {
     id: b.id,
+    slug: b.slug || b.id,
     name,
+    username: prof?.username || "",
     initials: name.slice(0, 2).toUpperCase(),
     color: AVATAR_COLORS[colorIdx],
     verified: false,
@@ -188,6 +213,107 @@ export async function getPublicTip(id: string): Promise<TipData | null> {
     betType: b.bet_type,
     legs: sels.map((s) => ({ match: s.match, market: s.market, line: s.line ?? "", odds: Number(s.odds) })),
   };
+}
+
+export interface TipsterProfile {
+  id: string;
+  name: string;
+  username: string;
+  initials: string;
+  color: string;
+  bio: string;
+  tips: {
+    slug: string;
+    match: string;
+    pick: string;
+    odds: number;
+    stake: number;
+    sportEmoji: string;
+    sportLabel: string;
+    league: string;
+    date: string;
+    isoDate: string;
+    analysis: string;
+    result: string;
+    profit: number | null;
+  }[];
+}
+
+// Fetch a tipster's public profile + their published tips. Server-safe (REST + fetch).
+export async function getTipsterProfile(username: string): Promise<TipsterProfile | null> {
+  const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
+  const key = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
+  if (!url || !key) return null;
+  const headers = { apikey: key, Authorization: `Bearer ${key}` };
+
+  const profRes = await fetch(
+    `${url}/rest/v1/profiles?username=eq.${encodeURIComponent(username)}&select=id,username,display_name,bio`,
+    { headers, cache: "no-store" }
+  );
+  if (!profRes.ok) return null;
+  const prof = (await profRes.json())?.[0];
+  if (!prof) return null;
+
+  const betsRes = await fetch(
+    `${url}/rest/v1/bets?user_id=eq.${prof.id}&is_public=eq.true&select=*,selections(*)&order=created_at.desc`,
+    { headers, cache: "no-store" }
+  );
+  const bets = betsRes.ok ? await betsRes.json() : [];
+  const name = prof.display_name || prof.username || "Anonymous";
+  const colorIdx = name.charCodeAt(0) % AVATAR_COLORS.length;
+
+  const tips = (bets as any[]).map((b) => {
+    const sels = (b.selections as any[]).slice().sort((a, c) => (a.sort_order ?? 0) - (c.sort_order ?? 0));
+    const sel0 = sels[0] ?? {};
+    const isMulti = b.bet_type !== "Single";
+    const combinedOdds = sels.reduce((acc, s) => acc * Number(s.odds), 1);
+    return {
+      slug: b.slug || b.id,
+      match: isMulti ? sels.map((s) => s.match.split(" – ")[0]).join(" + ") : (sel0.match || ""),
+      pick: isMulti ? sels.map((s) => s.line || s.match).join(" + ") : (sel0.line || sel0.market || sel0.match || ""),
+      odds: isMulti ? combinedOdds : Number(sel0.odds),
+      stake: Number(b.stake),
+      sportEmoji: SPORT_EMOJI[sel0.sport] ?? "🎱",
+      sportLabel: sel0.sport ?? "",
+      league: isMulti ? `${b.bet_type} · ${sels.length} selections` : (sel0.market || ""),
+      date: new Date(b.date).toLocaleDateString("en-GB", { weekday: "short", day: "2-digit", month: "short" }),
+      isoDate: b.date,
+      analysis: b.analysis || "",
+      result: b.result,
+      profit: b.profit !== null ? Number(b.profit) : null,
+    };
+  });
+
+  return {
+    id: prof.id,
+    name,
+    username: prof.username,
+    initials: name.slice(0, 2).toUpperCase(),
+    color: AVATAR_COLORS[colorIdx],
+    bio: prof.bio || "",
+    tips,
+  };
+}
+
+// List usernames that have published at least one public tip (for the sitemap).
+export async function listTipsterUsernames(): Promise<string[]> {
+  const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
+  const key = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
+  if (!url || !key) return [];
+  const headers = { apikey: key, Authorization: `Bearer ${key}` };
+  const betsRes = await fetch(
+    `${url}/rest/v1/bets?is_public=eq.true&select=user_id`,
+    { headers, cache: "no-store" }
+  );
+  if (!betsRes.ok) return [];
+  const userIds = [...new Set((await betsRes.json() as any[]).map((b) => b.user_id))];
+  if (!userIds.length) return [];
+  const profRes = await fetch(
+    `${url}/rest/v1/profiles?id=in.(${userIds.join(",")})&select=username`,
+    { headers, cache: "no-store" }
+  );
+  if (!profRes.ok) return [];
+  return (await profRes.json() as any[]).map((p) => p.username).filter(Boolean);
 }
 
 // Fetch all bets for the logged-in user
@@ -278,6 +404,13 @@ export async function saveBet(params: {
   );
 
   if (selError) return { error: selError.message };
+
+  // Readable slug from the lead selection + a short id suffix for uniqueness.
+  const lead = params.selections[0];
+  const base = slugify(`${lead?.match ?? ""} ${lead?.line || lead?.market || ""}`) || "tip";
+  const slug = `${base}-${String(bet.id).slice(0, 8)}`;
+  await supabase.from("bets").update({ slug }).eq("id", bet.id);
+
   return { error: null };
 }
 

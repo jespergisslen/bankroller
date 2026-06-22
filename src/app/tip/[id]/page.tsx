@@ -19,10 +19,10 @@ export async function generateMetadata({ params }: Params): Promise<Metadata> {
   return {
     title: `${title} · Bankroller`,
     description,
-    alternates: { canonical: `/tip/${id}` },
+    alternates: { canonical: `/tip/${tip.slug}` },
     // Thin tips (no analysis) stay out of the index but remain crawlable for links.
     robots: hasAnalysis ? undefined : { index: false, follow: true },
-    openGraph: { title, description, type: "article", url: `/tip/${id}` },
+    openGraph: { title, description, type: "article", url: `/tip/${tip.slug}` },
     twitter: { card: "summary_large_image", title, description },
   };
 }
@@ -40,7 +40,11 @@ export default async function TipPage({ params }: Params) {
     headline: `${tip.match} — ${tip.pick} @ ${tip.odds.toFixed(2)}`,
     ...(tip.analysis ? { articleBody: tip.analysis } : {}),
     datePublished: tip.isoDate,
-    author: { "@type": "Person", name: tip.name },
+    author: {
+      "@type": "Person",
+      name: tip.name,
+      ...(tip.username ? { url: `${SITE_URL}/u/${tip.username}` } : {}),
+    },
     publisher: { "@type": "Organization", name: "Bankroller", url: SITE_URL },
     about: {
       "@type": "SportsEvent",
@@ -48,7 +52,7 @@ export default async function TipPage({ params }: Params) {
       startDate: tip.isoDate,
       ...(tip.league ? { description: tip.league } : {}),
     },
-    url: `${SITE_URL}/tip/${tip.id}`,
+    url: `${SITE_URL}/tip/${tip.slug}`,
   };
 
   return (
@@ -72,7 +76,9 @@ export default async function TipPage({ params }: Params) {
           }}>{tip.initials}</div>
           <div>
             <div style={{ fontWeight: 600, fontSize: 15 }}>
-              {tip.name}
+              {tip.username ? (
+                <Link href={`/u/${tip.username}`} style={{ color: "var(--text)", textDecoration: "none" }}>{tip.name}</Link>
+              ) : tip.name}
               {tip.verified && <span style={{ color: "var(--accent)", marginLeft: 5, fontSize: 12 }}>✓</span>}
             </div>
             <div style={{ color: "var(--text-3)", fontFamily: "var(--mono)", fontSize: 11.5, marginTop: 2 }}>
@@ -107,7 +113,7 @@ export default async function TipPage({ params }: Params) {
           </div>
         </div>
 
-        <ShareBar tipId={tip.id} shareText={shareText} />
+        <ShareBar tipId={tip.slug} shareText={shareText} />
       </div>
     </div>
   );
