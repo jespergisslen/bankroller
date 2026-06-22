@@ -81,6 +81,10 @@ export function LogBetModal({ onClose, onSaved }: LogBetModalProps) {
   const isAcca = betType === "Accumulator";
 
   const handleSave = async () => {
+    if (isPublic && matchDate !== "" && matchDate < new Date().toISOString().slice(0, 10)) {
+      setSaveError("You can't publish a tip for an event that has already started.");
+      return;
+    }
     setSaving(true);
     setSaveError(null);
     const { error } = await saveBet({
@@ -129,6 +133,11 @@ export function LogBetModal({ onClose, onSaved }: LogBetModalProps) {
     : "";
 
   const canProceed = selections.every(s => s.match && s.sport && s.odds) && !!stake;
+
+  // Public tips can't be published for an event whose date has already passed.
+  const today = new Date().toISOString().slice(0, 10);
+  const matchInPast = matchDate !== "" && matchDate < today;
+  const publishBlocked = isPublic && matchInPast;
 
   const effectiveBookmaker = showCustomBookie ? customBookmaker : bookmaker;
 
@@ -493,7 +502,18 @@ export function LogBetModal({ onClose, onSaved }: LogBetModalProps) {
               </div>
             </div>
 
-            {isPublic && (
+            {publishBlocked && (
+              <div className="fade-in" style={{
+                padding: "10px 12px", borderRadius: "var(--r-s)",
+                background: "color-mix(in oklch, var(--warn) 10%, transparent)",
+                border: "1px solid color-mix(in oklch, var(--warn) 30%, transparent)",
+                color: "var(--warn)", fontSize: 12, lineHeight: 1.5,
+              }}>
+                This event&apos;s date has already passed — tips can only be published before the match starts. Keep it private, or update the match date.
+              </div>
+            )}
+
+            {isPublic && !publishBlocked && (
               <div className="fade-in">
                 <div className="label" style={{ marginBottom: 8 }}>
                   Analysis <span style={{ color: "var(--text-4)", letterSpacing: 0, textTransform: "none", fontSize: 11 }}>(optional)</span>
@@ -520,7 +540,7 @@ export function LogBetModal({ onClose, onSaved }: LogBetModalProps) {
             )}
             <div style={{ display: "flex", gap: 8 }}>
               <button className="btn" style={{ flex: 1, justifyContent: "center" }} onClick={() => setStep("details")}>← Back</button>
-              <button className="btn accent" style={{ flex: 2, justifyContent: "center" }} onClick={handleSave} disabled={saving}>
+              <button className="btn accent" style={{ flex: 2, justifyContent: "center" }} onClick={handleSave} disabled={saving || publishBlocked}>
                 {saving ? "Saving…" : isPublic ? "Save & publish tip" : "Save bet"}
               </button>
             </div>
