@@ -19,7 +19,12 @@ const SPORTS = [
   { emoji: "🎱", label: "Other" },
 ];
 
-const MARKETS = ["1X2", "Asian Handicap", "Over / Under", "BTTS", "Top goalscorer", "Bookings", "Draw No Bet", "Outright", "Other"];
+const MARKETS = [
+  "1X2", "Asian Handicap", "Over / Under", "BTTS", "Draw No Bet",
+  "Bet Builder", "Corners", "Cards / Bookings", "Top goalscorer", "Anytime scorer",
+  "Outright", "Set betting", "Total games", "18 Holes", "Tournament winner",
+  "Player props", "Other",
+];
 
 const BOOKMAKERS = [
   "Bet365", "Betsson", "Unibet", "LeoVegas",
@@ -62,6 +67,7 @@ export function LogBetModal({ onClose, onSaved }: LogBetModalProps) {
   const [selections, setSelections] = useState<Selection[]>([emptySelection()]);
 
   const [stake, setStake] = useState("");
+  const [matchDate, setMatchDate] = useState("");
   const [bookmaker, setBookmaker] = useState("");
   const [customBookmaker, setCustomBookmaker] = useState("");
   const [showCustomBookie, setShowCustomBookie] = useState(false);
@@ -80,6 +86,7 @@ export function LogBetModal({ onClose, onSaved }: LogBetModalProps) {
     const { error } = await saveBet({
       betType,
       stake: parseFloat(stake),
+      matchDate: matchDate || undefined,
       bookmaker: showCustomBookie ? customBookmaker : bookmaker,
       referralLink,
       isPublic,
@@ -298,7 +305,7 @@ export function LogBetModal({ onClose, onSaved }: LogBetModalProps) {
               </div>
             )}
 
-            {/* Stake + Bookmaker */}
+            {/* Stake + Match date */}
             <div style={{ display: "grid", gridTemplateColumns: "140px 1fr", gap: 12 }}>
               <div style={{ position: "relative" }}>
                 <div className="label" style={{ marginBottom: 8 }}>Stake</div>
@@ -315,6 +322,18 @@ export function LogBetModal({ onClose, onSaved }: LogBetModalProps) {
                 </div>
               </div>
               <div>
+                <div className="label" style={{ marginBottom: 8 }}>Match date</div>
+                <input
+                  value={matchDate}
+                  onChange={e => setMatchDate(e.target.value)}
+                  type="date"
+                  style={inputStyle}
+                />
+              </div>
+            </div>
+
+            {/* Bookmaker */}
+            <div>
                 <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 8 }}>
                   <div className="label">Bookmaker</div>
                   <button
@@ -346,7 +365,6 @@ export function LogBetModal({ onClose, onSaved }: LogBetModalProps) {
                   </div>
                 )}
               </div>
-            </div>
 
             {/* Referral / affiliate link (optional) */}
             <div>

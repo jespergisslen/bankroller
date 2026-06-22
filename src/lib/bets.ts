@@ -131,6 +131,7 @@ export async function fetchMyBets(): Promise<Bet[]> {
 export async function saveBet(params: {
   betType: Bet["betType"];
   stake: number;
+  matchDate?: string;
   bookmaker: string;
   referralLink?: string;
   isPublic: boolean;
@@ -148,6 +149,7 @@ export async function saveBet(params: {
       user_id: user.id,
       bet_type: params.betType,
       stake: params.stake,
+      ...(params.matchDate ? { date: params.matchDate } : {}),
       bookmaker: params.bookmaker || null,
       referral_link: params.referralLink || null,
       is_public: params.isPublic,
