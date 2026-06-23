@@ -229,7 +229,7 @@ function FeedRow({ tip, stakeLabel, isLast }: {
 
         <div style={{ fontWeight: 600, fontSize: 14, marginBottom: 6 }}>{tip.match}</div>
 
-        <div style={{ color: "var(--text-2)", fontSize: 13, lineHeight: 1.65, maxWidth: "64ch", marginBottom: 12 }}>
+        <div style={{ color: "var(--text-2)", fontSize: 13, lineHeight: 1.65, maxWidth: "64ch", marginBottom: 12, whiteSpace: "pre-wrap" }}>
           {tip.analysis}
         </div>
 

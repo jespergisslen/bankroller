@@ -90,7 +90,7 @@ export default async function TipPage({ params }: Params) {
         <h1 style={{ fontSize: 24, fontWeight: 700, letterSpacing: "-0.01em", marginBottom: 14 }}>{tip.match}</h1>
 
         {tip.analysis && (
-          <p style={{ color: "var(--text-2)", fontSize: 14.5, lineHeight: 1.7, marginBottom: 20 }}>{tip.analysis}</p>
+          <p style={{ color: "var(--text-2)", fontSize: 14.5, lineHeight: 1.7, marginBottom: 20, whiteSpace: "pre-wrap" }}>{tip.analysis}</p>
         )}
 
         {/* Pick box */}
