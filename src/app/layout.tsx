@@ -9,6 +9,11 @@ export const metadata: Metadata = {
   metadataBase: new URL(SITE_URL),
   title: "Bankroller",
   description: "The terminal for serious bettors.",
+  openGraph: {
+    siteName: "Bankroller.bet",
+    type: "website",
+    url: SITE_URL,
+  },
 };
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {

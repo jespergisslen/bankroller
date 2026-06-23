@@ -58,7 +58,9 @@ export default async function Image() {
         {/* Top bar */}
         <div style={{ display: "flex", alignItems: "center", gap: 18, padding: "56px 64px 0" }}>
           <img src={mark} alt="Bankroller" width={64} height={49} />
-          <span style={{ fontSize: 44, fontWeight: 700, color: text, letterSpacing: -1 }}>Bankroller</span>
+          <span style={{ fontSize: 44, fontWeight: 700, color: text, letterSpacing: -1 }}>
+            Bankroller<span style={{ color: accent }}>.bet</span>
+          </span>
         </div>
 
         {/* Hero copy */}
