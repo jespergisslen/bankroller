@@ -31,7 +31,7 @@ type FeedTip = {
   analysis: string; pick: string; odds: number; stake: number;
   bookmaker: string; referralLink?: string | null; postedYield: number | null;
   posted: string;
-  isMaxbet: boolean; result: string; profit: number | null;
+  isMaxbet: boolean; result: string; profit: number | null; isNew: boolean;
 };
 
 const STATUS_FILTER = ["All", "Upcoming"];
@@ -328,11 +328,17 @@ function FeedRow({ tip, stakeLabel, isLast }: {
       <div className="feed-yield" style={{ textAlign: "right", flexShrink: 0 }}>
         {tip.result !== "open" ? (
           <ResultBadge result={tip.result} profit={tip.profit} stakeLabel={stakeLabel} />
-        ) : (
+        ) : tip.isNew ? (
           <span style={{
             fontFamily: "var(--mono)", fontSize: 10, padding: "2px 7px", borderRadius: 4,
             background: "color-mix(in oklch, var(--accent) 12%, transparent)", color: "var(--accent)",
           }}>NEW</span>
+        ) : (
+          <span style={{
+            fontFamily: "var(--mono)", fontSize: 10, padding: "2px 7px", borderRadius: 4,
+            background: "rgba(255,255,255,0.05)", color: "var(--text-3)",
+            border: "1px solid var(--line-2)",
+          }}>OPEN</span>
         )}
       </div>
     </div>

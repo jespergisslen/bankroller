@@ -53,6 +53,7 @@ export interface PublicTip {
   isMaxbet: boolean;
   result: string;            // "open" | "win" | "loss" | "void"
   profit: number | null;
+  isNew: boolean;            // posted within the last 24h
 }
 
 // Fetch all public bets (the community feed).
@@ -117,6 +118,7 @@ export async function fetchPublicBets(): Promise<PublicTip[]> {
       isMaxbet: !!b.is_maxbet,
       result: b.result || "open",
       profit: b.profit !== null && b.profit !== undefined ? Number(b.profit) : null,
+      isNew: Date.now() - new Date(b.created_at).getTime() < 24 * 60 * 60 * 1000,
     };
   });
 }
