@@ -50,6 +50,9 @@ export interface PublicTip {
   referralLink: string | null;
   postedYield: number | null;
   posted: string;
+  isMaxbet: boolean;
+  result: string;            // "open" | "win" | "loss" | "void"
+  profit: number | null;
 }
 
 // Fetch all public bets (the community feed).
@@ -111,6 +114,9 @@ export async function fetchPublicBets(): Promise<PublicTip[]> {
       referralLink: b.referral_link || null,
       postedYield: null,
       posted: relativeTime(b.created_at),
+      isMaxbet: !!b.is_maxbet,
+      result: b.result || "open",
+      profit: b.profit !== null && b.profit !== undefined ? Number(b.profit) : null,
     };
   });
 }

@@ -31,12 +31,16 @@ type FeedTip = {
   analysis: string; pick: string; odds: number; stake: number;
   bookmaker: string; referralLink?: string | null; postedYield: number | null;
   posted: string;
+  isMaxbet: boolean; result: string; profit: number | null;
 };
+
+const STATUS_FILTER = ["All", "Upcoming"];
 
 export default function FeedPage() {
   const { stakeLabel } = useCurrency();
   const router = useRouter();
   const [sportFilter, setSportFilter] = useState("All");
+  const [statusFilter, setStatusFilter] = useState("All");
   const [isLoggedIn, setIsLoggedIn] = useState(false);
   const [realTips, setRealTips] = useState<PublicTip[]>([]);
   const [loaded, setLoaded] = useState(false);
@@ -57,7 +61,9 @@ export default function FeedPage() {
 
   const allTips: FeedTip[] = realTips;
   const filtered = allTips.filter(tip =>
-    sportFilter === "All" || tip.sport === sportFilter.split(" ")[0]
+    (sportFilter === "All" || tip.sport === sportFilter.split(" ")[0]) &&
+    // "Upcoming" = not yet settled (still to be decided)
+    (statusFilter === "All" || tip.result === "open")
   );
 
   return (
@@ -75,6 +81,8 @@ export default function FeedPage() {
       <div className="panel" style={{ padding: "12px 16px", marginBottom: 20, display: "flex", alignItems: "center", gap: 16, flexWrap: "wrap" }}>
         <span className="label">Sport</span>
         <Segmented options={SPORTS_FILTER} value={sportFilter} onChange={setSportFilter} />
+        <span className="label" style={{ marginLeft: 8 }}>Status</span>
+        <Segmented options={STATUS_FILTER} value={statusFilter} onChange={setStatusFilter} />
         <div style={{ marginLeft: "auto", fontFamily: "var(--mono)", fontSize: 11.5, color: "var(--text-3)" }}>
           {filtered.length} tips
         </div>
@@ -225,6 +233,20 @@ function FeedRow({ tip, stakeLabel, isLast }: {
           <span style={{ color: "var(--text-3)", fontFamily: "var(--mono)", fontSize: 11 }}>
             {tip.sport} {tip.league} · {tip.date}
           </span>
+          {tip.isMaxbet && (
+            <span title="Maxbet — highest-conviction pick" style={{
+              display: "inline-flex", alignItems: "center", gap: 4,
+              fontFamily: "var(--mono)", fontSize: 10, fontWeight: 700, letterSpacing: "0.06em",
+              textTransform: "uppercase", color: "var(--accent)",
+              padding: "2px 7px 2px 5px", borderRadius: 5,
+              background: "color-mix(in oklch, var(--accent) 12%, transparent)",
+              border: "1px solid color-mix(in oklch, var(--accent) 30%, transparent)",
+            }}>
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img src="/logo/bankroller-mark-accent.png" alt="" style={{ width: 13, height: 13 }} />
+              Maxbet
+            </span>
+          )}
         </div>
 
         <div style={{ fontWeight: 600, fontSize: 14, marginBottom: 6 }}>{tip.match}</div>
@@ -302,15 +324,10 @@ function FeedRow({ tip, stakeLabel, isLast }: {
         )}
       </div>
 
-      {/* Yield badge */}
+      {/* Status / result badge */}
       <div className="feed-yield" style={{ textAlign: "right", flexShrink: 0 }}>
-        {tip.postedYield !== null ? (
-          <>
-            <div className="label" style={{ marginBottom: 6 }}>verified yield</div>
-            <div className="num pos glow" style={{ fontSize: 22, fontWeight: 600, letterSpacing: "-0.02em" }}>
-              +{tip.postedYield}%
-            </div>
-          </>
+        {tip.result !== "open" ? (
+          <ResultBadge result={tip.result} profit={tip.profit} stakeLabel={stakeLabel} />
         ) : (
           <span style={{
             fontFamily: "var(--mono)", fontSize: 10, padding: "2px 7px", borderRadius: 4,
@@ -318,6 +335,29 @@ function FeedRow({ tip, stakeLabel, isLast }: {
           }}>NEW</span>
         )}
       </div>
+    </div>
+  );
+}
+
+function ResultBadge({ result, profit, stakeLabel }: { result: string; profit: number | null; stakeLabel: string }) {
+  const won = result === "win";
+  const lost = result === "loss";
+  const label = won ? "WON" : lost ? "LOST" : "VOID";
+  const color = won ? "var(--accent)" : lost ? "#e05555" : "var(--text-3)";
+  const unit = stakeLabel === "u" ? "u" : " " + stakeLabel;
+  return (
+    <div style={{ display: "flex", flexDirection: "column", alignItems: "flex-end", gap: 4 }}>
+      <span style={{
+        fontFamily: "var(--mono)", fontSize: 10, fontWeight: 700, letterSpacing: "0.06em",
+        padding: "2px 8px", borderRadius: 4,
+        color, background: `color-mix(in oklch, ${color} 13%, transparent)`,
+        border: `1px solid color-mix(in oklch, ${color} 30%, transparent)`,
+      }}>{label}</span>
+      {profit !== null && (
+        <span className={`num ${profit > 0 ? "pos glow" : profit < 0 ? "neg" : ""}`} style={{ fontSize: 14, fontWeight: 600 }}>
+          {profit > 0 ? "+" : ""}{profit}{unit}
+        </span>
+      )}
     </div>
   );
 }
