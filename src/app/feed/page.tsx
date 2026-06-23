@@ -175,7 +175,7 @@ function FeedRow({ tip, stakeLabel, isLast }: {
   isLast: boolean;
 }) {
   const [shareOpen, setShareOpen] = useState(false);
-  const bookieUrl = tip.referralLink || BOOKIE_LINKS[tip.bookmaker] || "#";
+  const bookieUrl = tip.referralLink || BOOKIE_LINKS[tip.bookmaker] || null;
   const shareText = `${tip.match} — ${tip.pick} @ ${tip.odds.toFixed(2)} (${tip.tipster.name} on Bankroller)`;
   const shareId = tip.slug || tip.id;
   const stakeDisplay = `${tip.stake}${stakeLabel === "u" ? "u" : " " + stakeLabel}`;
@@ -253,23 +253,32 @@ function FeedRow({ tip, stakeLabel, isLast }: {
             <div className="label" style={{ marginBottom: 3 }}>Stake</div>
             <div className="num" style={{ fontSize: 13.5, color: "var(--text-2)" }}>{stakeDisplay}</div>
           </div>
-          <a
-            href={bookieUrl}
-            target="_blank"
-            rel="noopener noreferrer"
-            style={{
-              padding: "10px 16px",
-              display: "flex", flexDirection: "column", gap: 3,
-              textDecoration: "none", transition: "background 0.15s",
-            }}
-            onMouseEnter={e => (e.currentTarget as HTMLElement).style.background = "rgba(255,255,255,0.04)"}
-            onMouseLeave={e => (e.currentTarget as HTMLElement).style.background = "transparent"}
-          >
-            <div className="label" style={{ marginBottom: 3 }}>Bet at</div>
-            <div style={{ fontFamily: "var(--mono)", fontSize: 12, color: "var(--accent)", fontWeight: 500 }}>
-              {tip.bookmaker} ↗
+          {bookieUrl ? (
+            <a
+              href={bookieUrl}
+              target="_blank"
+              rel="noopener noreferrer"
+              style={{
+                padding: "10px 16px",
+                display: "flex", flexDirection: "column", gap: 3,
+                textDecoration: "none", transition: "background 0.15s",
+              }}
+              onMouseEnter={e => (e.currentTarget as HTMLElement).style.background = "rgba(255,255,255,0.04)"}
+              onMouseLeave={e => (e.currentTarget as HTMLElement).style.background = "transparent"}
+            >
+              <div className="label" style={{ marginBottom: 3 }}>Bet at</div>
+              <div style={{ fontFamily: "var(--mono)", fontSize: 12, color: "var(--accent)", fontWeight: 500 }}>
+                {tip.bookmaker} ↗
+              </div>
+            </a>
+          ) : (
+            <div style={{ padding: "10px 16px", display: "flex", flexDirection: "column", gap: 3 }}>
+              <div className="label" style={{ marginBottom: 3 }}>Bet at</div>
+              <div style={{ fontFamily: "var(--mono)", fontSize: 12, color: "var(--text-2)", fontWeight: 500 }}>
+                {tip.bookmaker}
+              </div>
             </div>
-          </a>
+          )}
         </div>
 
         <div style={{ marginTop: 10, display: "flex", alignItems: "center", gap: 12 }}>
