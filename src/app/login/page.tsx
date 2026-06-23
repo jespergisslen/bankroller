@@ -4,6 +4,7 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { createClient } from "@/lib/supabase";
+import { Logo } from "@/components/Logo";
 
 export default function LoginPage() {
   const router = useRouter();
@@ -34,14 +35,9 @@ export default function LoginPage() {
     }}>
       <div className="panel fade-in" style={{ width: "100%", maxWidth: 380 }}>
         {/* Logo */}
-        <div style={{ padding: "24px 24px 0", textAlign: "center" }}>
-          <div style={{
-            fontFamily: "var(--logo)", fontSize: 22, fontWeight: 700,
-            color: "var(--accent)",
-            textShadow: "0 0 20px color-mix(in oklch, var(--accent) 50%, transparent)",
-            marginBottom: 6,
-          }}>Bankroller</div>
-          <div style={{ color: "var(--text-3)", fontFamily: "var(--mono)", fontSize: 12 }}>
+        <div style={{ padding: "24px 24px 0", display: "flex", flexDirection: "column", alignItems: "center" }}>
+          <Logo variant="wordmark" size={34} />
+          <div style={{ color: "var(--text-3)", fontFamily: "var(--mono)", fontSize: 12, marginTop: 10 }}>
             Sign in to your account
           </div>
         </div>

@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
+import { Logo } from "@/components/Logo";
 import { createClient } from "@/lib/supabase";
 import { validateUsername } from "@/lib/usernameRules";
 
@@ -43,14 +44,9 @@ export default function RegisterPage() {
       padding: 20,
     }}>
       <div className="panel fade-in" style={{ width: "100%", maxWidth: 380 }}>
-        <div style={{ padding: "24px 24px 0", textAlign: "center" }}>
-          <div style={{
-            fontFamily: "var(--logo)", fontSize: 22, fontWeight: 700,
-            color: "var(--accent)",
-            textShadow: "0 0 20px color-mix(in oklch, var(--accent) 50%, transparent)",
-            marginBottom: 6,
-          }}>Bankroller</div>
-          <div style={{ color: "var(--text-3)", fontFamily: "var(--mono)", fontSize: 12 }}>
+        <div style={{ padding: "24px 24px 0", display: "flex", flexDirection: "column", alignItems: "center" }}>
+          <Logo variant="wordmark" size={34} />
+          <div style={{ color: "var(--text-3)", fontFamily: "var(--mono)", fontSize: 12, marginTop: 10 }}>
             Create your account
           </div>
         </div>
