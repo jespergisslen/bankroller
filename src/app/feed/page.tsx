@@ -35,6 +35,7 @@ type FeedTip = {
 };
 
 const STATUS_FILTER = ["All", "Upcoming"];
+const PAGE_SIZE = 35;
 
 export default function FeedPage() {
   const { stakeLabel } = useCurrency();
@@ -44,16 +45,31 @@ export default function FeedPage() {
   const [isLoggedIn, setIsLoggedIn] = useState(false);
   const [realTips, setRealTips] = useState<PublicTip[]>([]);
   const [loaded, setLoaded] = useState(false);
+  const [hasMore, setHasMore] = useState(false);
+  const [loadingMore, setLoadingMore] = useState(false);
   const [topTipsters, setTopTipsters] = useState<TipsterRank[]>([]);
 
   useEffect(() => {
-    createClient().auth.getUser().then(({ data }) => setIsLoggedIn(!!data.user)).catch(() => {});
-    fetchPublicBets()
-      .then(setRealTips)
+    createClient().auth.getSession().then(({ data }) => setIsLoggedIn(!!data.session?.user)).catch(() => {});
+    fetchPublicBets({ limit: PAGE_SIZE })
+      .then((tips) => { setRealTips(tips); setHasMore(tips.length === PAGE_SIZE); })
       .catch(() => setRealTips([]))
       .finally(() => setLoaded(true));
     getTopTipsters(6).then(setTopTipsters).catch(() => setTopTipsters([]));
   }, []);
+
+  const loadMore = () => {
+    const last = realTips[realTips.length - 1];
+    if (!last) return;
+    setLoadingMore(true);
+    fetchPublicBets({ limit: PAGE_SIZE, before: last.createdAt })
+      .then((more) => {
+        setRealTips((prev) => [...prev, ...more]);
+        setHasMore(more.length === PAGE_SIZE);
+      })
+      .catch(() => {})
+      .finally(() => setLoadingMore(false));
+  };
 
   const requireAuth = () => {
     router.push(isLoggedIn ? "/dashboard" : "/register");
@@ -110,8 +126,16 @@ export default function FeedPage() {
             </div>
           ) : (
             filtered.map((tip, i) => (
-              <FeedRow key={i} tip={tip} stakeLabel={stakeLabel} isLast={i === filtered.length - 1} />
+              <FeedRow key={i} tip={tip} stakeLabel={stakeLabel} isLast={i === filtered.length - 1 && !hasMore} />
             ))
+          )}
+
+          {loaded && hasMore && (
+            <div style={{ padding: "16px var(--pad)", textAlign: "center" }}>
+              <button className="btn sm" onClick={loadMore} disabled={loadingMore} style={{ minWidth: 140, justifyContent: "center" }}>
+                {loadingMore ? "Loading…" : "Load more"}
+              </button>
+            </div>
           )}
         </div>
 

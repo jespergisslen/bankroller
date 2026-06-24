@@ -54,19 +54,24 @@ export interface PublicTip {
   result: string;            // "open" | "win" | "loss" | "void"
   profit: number | null;
   isNew: boolean;            // posted within the last 24h
+  createdAt: string;         // raw timestamp, used as the "load more" cursor
 }
 
 // Fetch all public bets (the community feed).
 // Uses raw REST (anon) — public data needs no auth, and this avoids the
 // supabase-js browser client awaiting the GoTrue auth lock (which can hang).
-export async function fetchPublicBets(): Promise<PublicTip[]> {
+export async function fetchPublicBets(opts?: { limit?: number; before?: string }): Promise<PublicTip[]> {
   const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
   const key = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
   if (!url || !key) return [];
   const headers = { apikey: key, Authorization: `Bearer ${key}` };
 
+  // Keyset pagination: fetch `limit` rows older than the `before` cursor.
+  const limitQ = opts?.limit ? `&limit=${opts.limit}` : "";
+  const beforeQ = opts?.before ? `&created_at=lt.${encodeURIComponent(opts.before)}` : "";
+
   const betsRes = await fetch(
-    `${url}/rest/v1/bets?is_public=eq.true&select=*,selections(*)&order=created_at.desc`,
+    `${url}/rest/v1/bets?is_public=eq.true&select=*,selections(*)&order=created_at.desc${beforeQ}${limitQ}`,
     { headers, cache: "no-store" }
   );
   if (!betsRes.ok) return [];
@@ -119,6 +124,7 @@ export async function fetchPublicBets(): Promise<PublicTip[]> {
       result: b.result || "open",
       profit: b.profit !== null && b.profit !== undefined ? Number(b.profit) : null,
       isNew: Date.now() - new Date(b.created_at).getTime() < 24 * 60 * 60 * 1000,
+      createdAt: b.created_at,
     };
   });
 }

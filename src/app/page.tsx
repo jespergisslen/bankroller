@@ -36,7 +36,7 @@ const FEATURES = [
 ];
 
 export default async function Home() {
-  const tips = (await fetchPublicBets()).slice(0, 5);
+  const tips = await fetchPublicBets({ limit: 5 });
 
   return (
     <div className="fade-in" style={{ maxWidth: 880, margin: "0 auto" }}>
