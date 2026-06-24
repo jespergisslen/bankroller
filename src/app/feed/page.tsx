@@ -34,14 +34,18 @@ type FeedTip = {
   isMaxbet: boolean; result: string; profit: number | null; isNew: boolean;
 };
 
-const STATUS_FILTER = ["All", "Upcoming"];
+const VIEWS = ["Latest", "Upcoming", "Settled", "Top yield"];
+const SETTLED_RESULTS = new Set(["win", "loss", "void", "half_win", "half_loss"]);
 const PAGE_SIZE = 35;
+
+const tipYield = (t: { profit: number | null; stake: number }) =>
+  t.profit !== null && t.stake > 0 ? t.profit / t.stake : -Infinity;
 
 export default function FeedPage() {
   const { stakeLabel } = useCurrency();
   const router = useRouter();
   const [sportFilter, setSportFilter] = useState("All");
-  const [statusFilter, setStatusFilter] = useState("All");
+  const [view, setView] = useState("Latest");
   const [isLoggedIn, setIsLoggedIn] = useState(false);
   const [realTips, setRealTips] = useState<PublicTip[]>([]);
   const [loaded, setLoaded] = useState(false);
@@ -76,11 +80,16 @@ export default function FeedPage() {
   };
 
   const allTips: FeedTip[] = realTips;
-  const filtered = allTips.filter(tip =>
-    (sportFilter === "All" || tip.sport === sportFilter.split(" ")[0]) &&
-    // "Upcoming" = not yet settled (still to be decided)
-    (statusFilter === "All" || tip.result === "open")
-  );
+  let filtered = allTips.filter((tip) => {
+    if (sportFilter !== "All" && tip.sport !== sportFilter.split(" ")[0]) return false;
+    if (view === "Upcoming") return tip.result === "open";
+    if (view === "Settled" || view === "Top yield") return SETTLED_RESULTS.has(tip.result);
+    return true; // Latest
+  });
+  if (view === "Top yield") {
+    filtered = [...filtered].sort((a, b) => tipYield(b) - tipYield(a));
+  }
+  // Latest / Upcoming / Settled keep the server order (newest placed first).
 
   return (
     <div className="fade-in">
@@ -99,8 +108,6 @@ export default function FeedPage() {
       <div className="panel" style={{ padding: "12px 16px", marginBottom: 20, display: "flex", alignItems: "center", gap: 16, flexWrap: "wrap" }}>
         <span className="label">Sport</span>
         <Segmented options={SPORTS_FILTER} value={sportFilter} onChange={setSportFilter} />
-        <span className="label" style={{ marginLeft: 8 }}>Status</span>
-        <Segmented options={STATUS_FILTER} value={statusFilter} onChange={setStatusFilter} />
         <div style={{ marginLeft: "auto", fontFamily: "var(--mono)", fontSize: 11.5, color: "var(--text-3)" }}>
           {filtered.length} tips
         </div>
@@ -112,8 +119,8 @@ export default function FeedPage() {
         {/* Feed */}
         <div className="panel">
           <div style={{ padding: "14px var(--pad)", borderBottom: "1px solid var(--line)", display: "flex", alignItems: "center", justifyContent: "space-between" }}>
-            <span style={{ fontWeight: 600, fontSize: 13 }}>Latest tips</span>
-            <Segmented options={["Latest", "Yield", "Hottest"]} value="Latest" onChange={() => {}} small />
+            <span style={{ fontWeight: 600, fontSize: 13 }}>Tips</span>
+            <Segmented options={VIEWS} value={view} onChange={setView} small />
           </div>
 
           {!loaded ? (
