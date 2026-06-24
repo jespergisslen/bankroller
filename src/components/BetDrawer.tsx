@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { type Bet } from "@/lib/mockData";
-import { type BetResult, RESULT_LABEL } from "@/lib/bets";
+import { type BetResult, RESULT_LABEL, SPORT_EMOJI } from "@/lib/bets";
 
 interface BetDrawerProps {
   bet: Bet;
@@ -196,9 +196,9 @@ export function BetDrawer({ bet, onClose, onDelete, onSave, onSettle }: BetDrawe
                           Selection {i + 1}
                         </div>
                       )}
-                      <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
-                        <span style={{ fontSize: 16 }}>{sel.sport}</span>
-                        <div>
+                      <div style={{ display: "flex", alignItems: "flex-start", gap: 8 }}>
+                        <span title={sel.sport} style={{ fontSize: 16, flexShrink: 0, lineHeight: 1.3 }}>{SPORT_EMOJI[sel.sport] ?? "🎱"}</span>
+                        <div style={{ minWidth: 0 }}>
                           <div style={{ fontWeight: 600, fontSize: 13.5 }}>{sel.match}</div>
                           <div style={{ color: "var(--text-3)", fontFamily: "var(--mono)", fontSize: 11, marginTop: 2 }}>
                             {sel.market}{sel.line ? ` · ${sel.line}` : ""}

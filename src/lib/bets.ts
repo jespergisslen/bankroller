@@ -1,7 +1,7 @@
 import { createClient } from "./supabase";
 import type { Bet, Selection } from "./mockData";
 
-const SPORT_EMOJI: Record<string, string> = {
+export const SPORT_EMOJI: Record<string, string> = {
   Football: "⚽", Tennis: "🎾", Golf: "⛳", Trotting: "🐎",
   Basketball: "🏀", "Ice Hockey": "🏒", Other: "🎱",
 };
