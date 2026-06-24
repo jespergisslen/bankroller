@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import "./globals.css";
 import { Topbar } from "@/components/Topbar";
+import { SiteFooter } from "@/components/SiteFooter";
 import { CurrencyProvider } from "@/lib/currencyContext";
 import { PersonaProvider } from "@/lib/personaContext";
 import { SITE_URL } from "@/lib/site";
@@ -39,6 +40,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
               <main className="app-main" style={{ maxWidth: 1320, margin: "0 auto", padding: "26px 22px 90px" }}>
                 {children}
               </main>
+              <SiteFooter />
             </div>
           </PersonaProvider>
         </CurrencyProvider>
