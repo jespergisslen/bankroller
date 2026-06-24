@@ -3,10 +3,16 @@ import Link from "next/link";
 import { getTopTipsters } from "@/lib/bets";
 
 export const metadata: Metadata = {
-  title: "Top tipsters — track records · Bankroller",
-  description: "The best sports betting tipsters on Bankroller, ranked by verified yield from their published tips.",
+  title: "Sports Betting Tipster Leaderboard — Verified Track Records · Bankroller",
+  description:
+    "The best sports betting tipsters, ranked on a verified, sample-size-adjusted yield (ROI) from every published pick — football, tennis, and more. See who really has an edge.",
+  keywords: ["sports betting tipsters", "tipster leaderboard", "best betting tips", "verified tipster", "betting yield", "betting ROI"],
   alternates: { canonical: "/leaderboard" },
-  openGraph: { title: "Top tipsters · Bankroller", description: "Ranked by verified yield.", type: "website", url: "/leaderboard" },
+  openGraph: {
+    title: "Sports Betting Tipster Leaderboard · Bankroller",
+    description: "The best tipsters, ranked by verified, sample-size-adjusted yield.",
+    type: "website", url: "/leaderboard",
+  },
 };
 
 export default async function LeaderboardPage() {
@@ -15,8 +21,12 @@ export default async function LeaderboardPage() {
   return (
     <div className="fade-in" style={{ maxWidth: 720, margin: "0 auto" }}>
       <div style={{ marginBottom: 22 }}>
-        <h1 style={{ fontSize: 22, fontWeight: 600, letterSpacing: "-0.01em" }}>Top tipsters</h1>
-        <p style={{ color: "var(--text-2)", marginTop: 4, fontSize: 13.5 }}>Ranked by sample-size-adjusted yield from published tips.</p>
+        <h1 style={{ fontSize: 22, fontWeight: 600, letterSpacing: "-0.01em" }}>Sports betting tipster leaderboard</h1>
+        <p style={{ color: "var(--text-2)", marginTop: 6, fontSize: 13.5, lineHeight: 1.55, maxWidth: 600 }}>
+          The top sports betting tipsters on Bankroller, ranked by a verified, sample-size-adjusted
+          yield (ROI) across every published pick — so a long, consistent record beats one lucky bet.
+          Follow the tipsters who genuinely have an edge.
+        </p>
       </div>
 
       <details style={{
