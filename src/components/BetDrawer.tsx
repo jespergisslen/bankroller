@@ -115,51 +115,53 @@ export function BetDrawer({ bet, onClose, onDelete, onSave, onSettle }: BetDrawe
             <span className="num" style={{ fontSize: 14, color: "var(--text-2)" }}>{bet.stake}u</span>
           </div>
 
-          {/* Settle — only for open bets */}
-          {bet.result === "open" && (
-            <div style={{ padding: 14, borderRadius: "var(--r-m)", border: "1px solid color-mix(in oklch, var(--warn) 30%, transparent)", background: "color-mix(in oklch, var(--warn) 6%, transparent)" }}>
-              <div className="label" style={{ marginBottom: 10 }}>Settle this bet</div>
-              {([
-                [
-                  { r: "win" as const,  label: "Win",  color: "var(--accent)" },
-                  { r: "loss" as const, label: "Loss", color: "var(--neg)" },
-                  { r: "void" as const, label: "Void", color: "var(--text-2)" },
-                ],
-                [
-                  { r: "half_win" as const,  label: "½ Win",  color: "var(--accent)" },
-                  { r: "half_loss" as const, label: "½ Loss", color: "var(--neg)" },
-                ],
-              ]).map((row, ri) => (
-                <div key={ri} style={{ display: "flex", gap: 8, marginTop: ri ? 8 : 0 }}>
-                  {row.map(({ r, label, color }) => {
-                    const p = profitFor(r);
-                    return (
-                      <button
-                        key={r}
-                        className="btn"
-                        disabled={settling}
-                        onClick={() => handleSettle(r)}
-                        style={{
-                          flex: 1, flexDirection: "column", gap: 2, padding: "10px 6px",
-                          justifyContent: "center", alignItems: "center",
-                          borderColor: `color-mix(in oklch, ${color} 35%, transparent)`,
-                          color,
-                        }}
-                      >
-                        <span style={{ fontWeight: 600, fontSize: 13 }}>{label}</span>
-                        <span className="num" style={{ fontSize: 11, opacity: 0.85 }}>
-                          {p > 0 ? "+" : ""}{p}u
-                        </span>
-                      </button>
-                    );
-                  })}
-                </div>
-              ))}
-              <div style={{ color: "var(--text-4)", fontFamily: "var(--mono)", fontSize: 10.5, marginTop: 8 }}>
-                Profit is from your {isMulti ? "combined odds" : "odds"} ({effectiveOdds.toFixed(2)}) × stake. ½ results stake half the unit (Asian handicaps).
-              </div>
+          {/* Settle / change result — always available so a mis-click is one tap to fix */}
+          <div style={{ padding: 14, borderRadius: "var(--r-m)", border: "1px solid color-mix(in oklch, var(--warn) 30%, transparent)", background: "color-mix(in oklch, var(--warn) 6%, transparent)" }}>
+            <div className="label" style={{ marginBottom: 10 }}>
+              {bet.result === "open" ? "Settle this bet" : "Change result"}
             </div>
-          )}
+            {([
+              [
+                { r: "win" as const,  label: "Win",  color: "var(--accent)" },
+                { r: "loss" as const, label: "Loss", color: "var(--neg)" },
+                { r: "void" as const, label: "Void", color: "var(--text-2)" },
+              ],
+              [
+                { r: "half_win" as const,  label: "½ Win",  color: "var(--accent)" },
+                { r: "half_loss" as const, label: "½ Loss", color: "var(--neg)" },
+              ],
+            ]).map((row, ri) => (
+              <div key={ri} style={{ display: "flex", gap: 8, marginTop: ri ? 8 : 0 }}>
+                {row.map(({ r, label, color }) => {
+                  const p = profitFor(r);
+                  const active = bet.result === r;
+                  return (
+                    <button
+                      key={r}
+                      className="btn"
+                      disabled={settling}
+                      onClick={() => handleSettle(r)}
+                      style={{
+                        flex: 1, flexDirection: "column", gap: 2, padding: "10px 6px",
+                        justifyContent: "center", alignItems: "center",
+                        borderColor: active ? color : `color-mix(in oklch, ${color} 35%, transparent)`,
+                        background: active ? `color-mix(in oklch, ${color} 16%, transparent)` : undefined,
+                        color,
+                      }}
+                    >
+                      <span style={{ fontWeight: 600, fontSize: 13 }}>{label}{active ? " ✓" : ""}</span>
+                      <span className="num" style={{ fontSize: 11, opacity: 0.85 }}>
+                        {p > 0 ? "+" : ""}{p}u
+                      </span>
+                    </button>
+                  );
+                })}
+              </div>
+            ))}
+            <div style={{ color: "var(--text-4)", fontFamily: "var(--mono)", fontSize: 10.5, marginTop: 8 }}>
+              Profit is from your {isMulti ? "combined odds" : "odds"} ({effectiveOdds.toFixed(2)}) × stake. ½ results stake half the unit (Asian handicaps).
+            </div>
+          </div>
 
           {/* Re-open a settled bet */}
           {bet.result !== "open" && (
