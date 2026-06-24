@@ -443,6 +443,7 @@ export async function fetchMyBets(profileId?: string): Promise<Bet[]> {
   return betsData.map((b) => ({
     id: b.id,
     date: new Date(b.date).toLocaleDateString("en-GB", { day: "2-digit", month: "short" }),
+    isoDate: b.date,
     betType: b.bet_type as Bet["betType"],
     stake: Number(b.stake),
     result: b.result,

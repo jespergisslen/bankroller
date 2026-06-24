@@ -23,6 +23,32 @@ export default function DashboardPage() {
   const [bets, setBets] = useState<Bet[]>([]);
   const [loadingBets, setLoadingBets] = useState(true);
   const [selectedBet, setSelectedBet] = useState<Bet | null>(null);
+  const [dismissedOverdue, setDismissedOverdue] = useState<string[]>([]);
+
+  useEffect(() => {
+    try {
+      const raw = localStorage.getItem("bankroller_dismissed_overdue");
+      if (raw) setDismissedOverdue(JSON.parse(raw));
+    } catch { /* ignore */ }
+  }, []);
+
+  // Open bets whose event date has already passed → awaiting settlement.
+  const overdueBets = useMemo(() => {
+    const today = new Date().toISOString().slice(0, 10);
+    return bets
+      .filter((b) => b.result === "open" && b.isoDate && b.isoDate < today)
+      .sort((a, b) => (a.isoDate! < b.isoDate! ? -1 : 1)); // oldest first
+  }, [bets]);
+
+  // Show only bets the user hasn't already dismissed; a brand-new overdue bet re-triggers.
+  const pendingOverdue = overdueBets.filter((b) => b.id && !dismissedOverdue.includes(b.id));
+
+  const dismissOverdue = () => {
+    const ids = overdueBets.map((b) => b.id!).filter(Boolean);
+    const merged = Array.from(new Set([...dismissedOverdue, ...ids]));
+    setDismissedOverdue(merged);
+    try { localStorage.setItem("bankroller_dismissed_overdue", JSON.stringify(merged)); } catch { /* ignore */ }
+  };
 
   const stats = useMemo(() => computeStats(bets), [bets]);
   const maxSport = Math.max(1, ...stats.bySport.map(s => Math.abs(s.val)));
@@ -135,6 +161,35 @@ export default function DashboardPage() {
             <button className="btn accent sm" onClick={() => setShowModal(true)}>+ Log a bet</button>
           </div>
         </div>
+
+        {/* Awaiting-settlement reminder */}
+        {pendingOverdue.length > 0 && (
+          <div className="fade-in" style={{
+            display: "flex", alignItems: "center", justifyContent: "space-between", gap: 14,
+            padding: "12px 16px", marginBottom: 20, borderRadius: "var(--r-m)",
+            border: "1px solid color-mix(in oklch, var(--warn) 35%, transparent)",
+            background: "color-mix(in oklch, var(--warn) 8%, transparent)",
+          }}>
+            <div style={{ minWidth: 0 }}>
+              <div style={{ fontWeight: 600, fontSize: 13.5, color: "var(--warn)" }}>
+                ⏰ {pendingOverdue.length === 1
+                  ? "1 bet is awaiting settlement"
+                  : `${pendingOverdue.length} bets are awaiting settlement`}
+              </div>
+              <div style={{ color: "var(--text-2)", fontSize: 12.5, marginTop: 2 }}>
+                The event date has passed. Settle {pendingOverdue.length === 1 ? "it" : "them"} to keep your stats accurate.
+              </div>
+            </div>
+            <div style={{ display: "flex", gap: 8, flexShrink: 0 }}>
+              <button className="btn accent sm" onClick={() => setSelectedBet(pendingOverdue[0])}>
+                Settle {pendingOverdue.length > 1 ? "oldest" : "now"}
+              </button>
+              <button className="btn sm" onClick={dismissOverdue} title="Hide until a new bet becomes overdue">
+                Dismiss
+              </button>
+            </div>
+          </div>
+        )}
 
         {/* KPI strip */}
         <div
