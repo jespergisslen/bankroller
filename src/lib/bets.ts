@@ -371,15 +371,6 @@ export async function getTopTipsters(limit = 10): Promise<TipsterRank[]> {
     const prof = profMap.get(pid);
     const name = prof?.display_name || prof?.username || "Anonymous";
     const colorIdx = name.charCodeAt(0) % AVATAR_COLORS.length;
-    return {
-      username: prof?.username || "",
-      name,
-      initials: name.slice(0, 2).toUpperCase(),
-      color: AVATAR_COLORS[colorIdx],
-      tips: a.tips,
-      settled: a.settled,
-      wins: a.wins,
-      winRate: a.settled ? Math.round((a.wins / a.settled) * 100) : null,
     const rawYield = a.staked > 0 ? (a.net / a.staked) * 100 : null;
     // Shrink the raw yield toward 0 based on how many bets are settled.
     const score = a.settled > 0
