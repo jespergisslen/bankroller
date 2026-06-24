@@ -4,8 +4,10 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { allTerms } from "@/lib/glossary";
 
-// Routes where the marketing footer would feel out of place (the "app" itself).
-const HIDE_ON = ["/dashboard", "/profile", "/login", "/register"];
+// Full-screen centered auth pages have no room for a footer.
+const HIDE_ON = ["/login", "/register"];
+// In-app pages keep the footer but drop the logged-out "Get started" column.
+const APP_ROUTES = ["/dashboard", "/profile"];
 
 const linkStyle: React.CSSProperties = {
   display: "block", color: "var(--text-3)", textDecoration: "none",
@@ -16,6 +18,7 @@ export function SiteFooter() {
   const pathname = usePathname();
   if (HIDE_ON.some((p) => pathname === p || pathname.startsWith(p + "/"))) return null;
 
+  const inApp = APP_ROUTES.some((p) => pathname === p || pathname.startsWith(p + "/"));
   const featured = allTerms().slice(0, 5);
 
   return (
@@ -75,12 +78,14 @@ export function SiteFooter() {
             ))}
           </div>
 
-          {/* Get started */}
-          <div>
-            <div className="label" style={{ marginBottom: 10 }}>Get started</div>
-            <Link href="/register" style={linkStyle}>Create account</Link>
-            <Link href="/login" style={linkStyle}>Log in</Link>
-          </div>
+          {/* Get started — only for logged-out / marketing pages */}
+          {!inApp && (
+            <div>
+              <div className="label" style={{ marginBottom: 10 }}>Get started</div>
+              <Link href="/register" style={linkStyle}>Create account</Link>
+              <Link href="/login" style={linkStyle}>Log in</Link>
+            </div>
+          )}
         </div>
 
         {/* Bottom line — sits above the deep where the kraken rises */}
