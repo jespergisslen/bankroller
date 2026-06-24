@@ -171,6 +171,11 @@ body {
 .result-pill.half_win  { color: var(--accent); background: color-mix(in oklch, var(--accent) 9%, transparent); }
 .result-pill.half_loss { color: var(--neg);    background: rgba(255,255,255,0.04); }
 
+/* Glossary rows */
+.glossary-row { transition: background 0.12s, padding-left 0.12s; }
+.glossary-row:hover { background: rgba(255,255,255,0.025); padding-left: 14px; }
+.glossary-row:hover .glossary-arrow { opacity: 1 !important; }
+
 /* Tags */
 .tag {
   display: inline-block;
