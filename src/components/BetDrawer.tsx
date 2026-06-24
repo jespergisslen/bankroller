@@ -127,8 +127,8 @@ export function BetDrawer({ bet, onClose, onDelete, onSave, onSettle }: BetDrawe
                 { r: "void" as const, label: "Void", color: "var(--text-2)" },
               ],
               [
-                { r: "half_win" as const,  label: "½ Win",  color: "var(--accent)" },
-                { r: "half_loss" as const, label: "½ Loss", color: "var(--neg)" },
+                { r: "half_win" as const,  label: "Half win",  color: "var(--accent)" },
+                { r: "half_loss" as const, label: "Half loss", color: "var(--neg)" },
               ],
             ]).map((row, ri) => (
               <div key={ri} style={{ display: "flex", gap: 8, marginTop: ri ? 8 : 0 }}>
