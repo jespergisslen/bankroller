@@ -71,8 +71,10 @@ export default function FeedPage() {
       {/* Page head */}
       <div style={{ display: "flex", alignItems: "flex-start", justifyContent: "space-between", marginBottom: 24, gap: 16 }}>
         <div>
-          <h1 style={{ fontSize: 22, fontWeight: 600, letterSpacing: "-0.01em" }}>Feed</h1>
-          <p style={{ color: "var(--text-2)", marginTop: 4, fontSize: 13.5 }}>Public picks from verified tipsters.</p>
+          <h1 style={{ fontSize: 22, fontWeight: 600, letterSpacing: "-0.01em" }}>Sports betting tips feed</h1>
+          <p style={{ color: "var(--text-2)", marginTop: 4, fontSize: 13.5, lineHeight: 1.55, maxWidth: 560 }}>
+            The latest public sports betting tips — football, tennis and more — from tipsters building a verified track record on Bankroller.
+          </p>
         </div>
         <button className="btn accent sm" onClick={requireAuth}>+ Publish a tip</button>
       </div>

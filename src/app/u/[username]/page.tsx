@@ -72,10 +72,15 @@ export default async function ProfilePage({ params }: Params) {
           }}>{p.initials}</div>
           <div style={{ minWidth: 0 }}>
             <h1 style={{ fontSize: 22, fontWeight: 700, letterSpacing: "-0.01em" }}>{p.name}</h1>
-            <div style={{ color: "var(--text-3)", fontFamily: "var(--mono)", fontSize: 12, marginTop: 2 }}>@{p.username}</div>
+            <div style={{ color: "var(--text-3)", fontFamily: "var(--mono)", fontSize: 12, marginTop: 2 }}>
+              @{p.username} · Sports betting tipster
+            </div>
           </div>
         </div>
         {p.bio && <p style={{ color: "var(--text-2)", fontSize: 14, lineHeight: 1.65, marginTop: 14 }}>{p.bio}</p>}
+        <p style={{ color: "var(--text-3)", fontSize: 13, lineHeight: 1.6, marginTop: p.bio ? 8 : 14 }}>
+          {p.name}&apos;s verified sports betting tips and track record on Bankroller — yield, win rate and every published pick.
+        </p>
 
         {/* Stats */}
         <div className="kpi-grid" style={{ display: "grid", gridTemplateColumns: "repeat(4, 1fr)", gap: 12, marginTop: 18 }}>
