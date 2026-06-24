@@ -346,9 +346,10 @@ function FeedRow({ tip, stakeLabel, isLast }: {
 }
 
 function ResultBadge({ result, profit, stakeLabel }: { result: string; profit: number | null; stakeLabel: string }) {
-  const won = result === "win";
-  const lost = result === "loss";
-  const label = won ? "WON" : lost ? "LOST" : "VOID";
+  const won = result === "win" || result === "half_win";
+  const lost = result === "loss" || result === "half_loss";
+  const label = result === "win" ? "WON" : result === "loss" ? "LOST"
+    : result === "half_win" ? "½ WON" : result === "half_loss" ? "½ LOST" : "VOID";
   const color = won ? "var(--accent)" : lost ? "#e05555" : "var(--text-3)";
   const unit = stakeLabel === "u" ? "u" : " " + stakeLabel;
   return (

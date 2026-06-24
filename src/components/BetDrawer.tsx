@@ -2,13 +2,14 @@
 
 import { useState } from "react";
 import { type Bet } from "@/lib/mockData";
+import { type BetResult, RESULT_LABEL } from "@/lib/bets";
 
 interface BetDrawerProps {
   bet: Bet;
   onClose: () => void;
   onDelete: () => void;
   onSave: (closingOdds: number | null, selectionIndex?: number) => void;
-  onSettle: (result: "win" | "loss" | "void" | "open", profit: number | null) => void;
+  onSettle: (result: BetResult, profit: number | null) => void;
 }
 
 export function BetDrawer({ bet, onClose, onDelete, onSave, onSettle }: BetDrawerProps) {
@@ -22,14 +23,17 @@ export function BetDrawer({ bet, onClose, onDelete, onSave, onSettle }: BetDrawe
   const [confirmDelete, setConfirmDelete] = useState(false);
   const [settling, setSettling] = useState(false);
 
-  // Profit if this bet were settled as win / loss / void
-  const profitFor = (result: "win" | "loss" | "void"): number => {
+  // Profit if this bet were settled as a given result. Half results (Asian
+  // quarter-handicaps) stake half the unit: half wins/loses, half is void.
+  const profitFor = (result: BetResult): number => {
     if (result === "win") return +(bet.stake * (effectiveOdds - 1)).toFixed(2);
     if (result === "loss") return -bet.stake;
+    if (result === "half_win") return +(bet.stake * (effectiveOdds - 1) / 2).toFixed(2);
+    if (result === "half_loss") return +(-bet.stake / 2).toFixed(2);
     return 0; // void
   };
 
-  const handleSettle = async (result: "win" | "loss" | "void") => {
+  const handleSettle = async (result: BetResult) => {
     setSettling(true);
     await onSettle(result, profitFor(result));
     setSettling(false);
@@ -91,7 +95,7 @@ export function BetDrawer({ bet, onClose, onDelete, onSave, onSettle }: BetDrawe
 
           {/* Result + P&L */}
           <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
-            <span className={`result-pill ${bet.result}`} style={{ fontSize: 12, padding: "4px 10px" }}>{bet.result}</span>
+            <span className={`result-pill ${bet.result}`} style={{ fontSize: 12, padding: "4px 10px" }}>{RESULT_LABEL[bet.result] ?? bet.result}</span>
             {bet.profit !== null && bet.profit !== 0 && (
               <span className={`num ${bet.profit > 0 ? "pos glow" : "neg"}`} style={{ fontSize: 18, fontWeight: 700 }}>
                 {bet.profit > 0 ? "+" : ""}{bet.profit}u
@@ -115,36 +119,44 @@ export function BetDrawer({ bet, onClose, onDelete, onSave, onSettle }: BetDrawe
           {bet.result === "open" && (
             <div style={{ padding: 14, borderRadius: "var(--r-m)", border: "1px solid color-mix(in oklch, var(--warn) 30%, transparent)", background: "color-mix(in oklch, var(--warn) 6%, transparent)" }}>
               <div className="label" style={{ marginBottom: 10 }}>Settle this bet</div>
-              <div style={{ display: "flex", gap: 8 }}>
-                {([
+              {([
+                [
                   { r: "win" as const,  label: "Win",  color: "var(--accent)" },
                   { r: "loss" as const, label: "Loss", color: "var(--neg)" },
                   { r: "void" as const, label: "Void", color: "var(--text-2)" },
-                ]).map(({ r, label, color }) => {
-                  const p = profitFor(r);
-                  return (
-                    <button
-                      key={r}
-                      className="btn"
-                      disabled={settling}
-                      onClick={() => handleSettle(r)}
-                      style={{
-                        flex: 1, flexDirection: "column", gap: 2, padding: "10px 6px",
-                        justifyContent: "center", alignItems: "center",
-                        borderColor: `color-mix(in oklch, ${color} 35%, transparent)`,
-                        color,
-                      }}
-                    >
-                      <span style={{ fontWeight: 600, fontSize: 13 }}>{label}</span>
-                      <span className="num" style={{ fontSize: 11, opacity: 0.85 }}>
-                        {p > 0 ? "+" : ""}{p}u
-                      </span>
-                    </button>
-                  );
-                })}
-              </div>
+                ],
+                [
+                  { r: "half_win" as const,  label: "½ Win",  color: "var(--accent)" },
+                  { r: "half_loss" as const, label: "½ Loss", color: "var(--neg)" },
+                ],
+              ]).map((row, ri) => (
+                <div key={ri} style={{ display: "flex", gap: 8, marginTop: ri ? 8 : 0 }}>
+                  {row.map(({ r, label, color }) => {
+                    const p = profitFor(r);
+                    return (
+                      <button
+                        key={r}
+                        className="btn"
+                        disabled={settling}
+                        onClick={() => handleSettle(r)}
+                        style={{
+                          flex: 1, flexDirection: "column", gap: 2, padding: "10px 6px",
+                          justifyContent: "center", alignItems: "center",
+                          borderColor: `color-mix(in oklch, ${color} 35%, transparent)`,
+                          color,
+                        }}
+                      >
+                        <span style={{ fontWeight: 600, fontSize: 13 }}>{label}</span>
+                        <span className="num" style={{ fontSize: 11, opacity: 0.85 }}>
+                          {p > 0 ? "+" : ""}{p}u
+                        </span>
+                      </button>
+                    );
+                  })}
+                </div>
+              ))}
               <div style={{ color: "var(--text-4)", fontFamily: "var(--mono)", fontSize: 10.5, marginTop: 8 }}>
-                Profit is calculated from your {isMulti ? "combined odds" : "odds"} ({effectiveOdds.toFixed(2)}) × stake.
+                Profit is from your {isMulti ? "combined odds" : "odds"} ({effectiveOdds.toFixed(2)}) × stake. ½ results stake half the unit (Asian handicaps).
               </div>
             </div>
           )}

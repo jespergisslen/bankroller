@@ -6,7 +6,7 @@ import { Sparkline } from "@/components/Sparkline";
 import { LogBetModal } from "@/components/LogBetModal";
 import { BetDrawer } from "@/components/BetDrawer";
 import { type Bet } from "@/lib/mockData";
-import { fetchMyBets, updateClosingOdds, deleteBet, settleBet } from "@/lib/bets";
+import { fetchMyBets, updateClosingOdds, deleteBet, settleBet, RESULT_LABEL, type BetResult } from "@/lib/bets";
 import { createClient } from "@/lib/supabase";
 import { computeStats } from "@/lib/stats";
 import { useCurrency } from "@/lib/currencyContext";
@@ -95,7 +95,7 @@ export default function DashboardPage() {
     setSelectedBet(null);
   };
 
-  const handleSettle = async (result: "win" | "loss" | "void" | "open", profit: number | null) => {
+  const handleSettle = async (result: BetResult, profit: number | null) => {
     if (!selectedBet) return;
     const id = selectedBet.id;
     if (id) await settleBet(id, result, profit);
@@ -466,7 +466,7 @@ function BetRow({ bet, onClick }: { bet: Bet; onClick: () => void }) {
 
       {/* Result */}
       <td style={{ padding: "0 var(--pad)", textAlign: "center" }}>
-        <span className={`result-pill ${bet.result}`}>{bet.result}</span>
+        <span className={`result-pill ${bet.result}`}>{RESULT_LABEL[bet.result] ?? bet.result}</span>
       </td>
 
       {/* P&L */}

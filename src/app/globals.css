@@ -168,6 +168,8 @@ body {
 .result-pill.loss { color: var(--neg);    background: rgba(255,255,255,0.04); }
 .result-pill.void { color: var(--text-2); background: rgba(255,255,255,0.04); }
 .result-pill.open { color: var(--warn);   background: color-mix(in oklch, var(--warn) 12%, transparent); }
+.result-pill.half_win  { color: var(--accent); background: color-mix(in oklch, var(--accent) 9%, transparent); }
+.result-pill.half_loss { color: var(--neg);    background: rgba(255,255,255,0.04); }
 
 /* Tags */
 .tag {

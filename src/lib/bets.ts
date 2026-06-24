@@ -349,11 +349,12 @@ export async function getTopTipsters(limit = 10): Promise<TipsterRank[]> {
     const pid = b.profile_id || b.user_id;
     const a = agg.get(pid) ?? { tips: 0, settled: 0, wins: 0, net: 0, staked: 0 };
     a.tips += 1;
-    if (b.result === "win" || b.result === "loss" || b.result === "void") {
+    if (b.result === "win" || b.result === "loss" || b.result === "void" || b.result === "half_win" || b.result === "half_loss") {
       a.settled += 1;
       a.staked += Number(b.stake) || 0;
       a.net += b.profit !== null ? Number(b.profit) : 0;
       if (b.result === "win") a.wins += 1;
+      else if (b.result === "half_win") a.wins += 0.5;
     }
     agg.set(pid, a);
   }
@@ -551,10 +552,20 @@ export async function updateClosingOdds(
   return { error: null };
 }
 
+// Possible settled states. Asian quarter-handicaps (e.g. +0.75) can land on a
+// half result: half the stake wins/loses, the other half is void.
+export type BetResult = "open" | "win" | "loss" | "void" | "half_win" | "half_loss";
+
+// Human-readable labels for each result state.
+export const RESULT_LABEL: Record<string, string> = {
+  open: "open", win: "win", loss: "loss", void: "void",
+  half_win: "½ win", half_loss: "½ loss",
+};
+
 // Settle a bet — set result and computed profit
 export async function settleBet(
   betId: string,
-  result: "win" | "loss" | "void" | "open",
+  result: BetResult,
   profit: number | null
 ): Promise<{ error: string | null }> {
   const supabase = createClient();
