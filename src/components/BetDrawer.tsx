@@ -158,8 +158,8 @@ export function BetDrawer({ bet, onClose, onDelete, onSave, onSettle }: BetDrawe
                 })}
               </div>
             ))}
-            <div style={{ color: "var(--text-4)", fontFamily: "var(--mono)", fontSize: 10.5, marginTop: 8 }}>
-              Profit is from your {isMulti ? "combined odds" : "odds"} ({effectiveOdds.toFixed(2)}) × stake. ½ results stake half the unit (Asian handicaps).
+            <div style={{ color: "var(--text-2)", fontFamily: "var(--mono)", fontSize: 11, lineHeight: 1.5, marginTop: 8 }}>
+              Profit is from your {isMulti ? "combined odds" : "odds"} ({effectiveOdds.toFixed(2)}) × stake. Half results stake half the unit (Asian handicaps).
             </div>
           </div>
 

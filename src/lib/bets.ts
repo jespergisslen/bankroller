@@ -559,7 +559,7 @@ export type BetResult = "open" | "win" | "loss" | "void" | "half_win" | "half_lo
 // Human-readable labels for each result state.
 export const RESULT_LABEL: Record<string, string> = {
   open: "open", win: "win", loss: "loss", void: "void",
-  half_win: "½ win", half_loss: "½ loss",
+  half_win: "half win", half_loss: "half loss",
 };
 
 // Settle a bet — set result and computed profit

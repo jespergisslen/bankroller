@@ -349,7 +349,7 @@ function ResultBadge({ result, profit, stakeLabel }: { result: string; profit: n
   const won = result === "win" || result === "half_win";
   const lost = result === "loss" || result === "half_loss";
   const label = result === "win" ? "WON" : result === "loss" ? "LOST"
-    : result === "half_win" ? "½ WON" : result === "half_loss" ? "½ LOST" : "VOID";
+    : result === "half_win" ? "HALF WON" : result === "half_loss" ? "HALF LOST" : "VOID";
   const color = won ? "var(--accent)" : lost ? "#e05555" : "var(--text-3)";
   const unit = stakeLabel === "u" ? "u" : " " + stakeLabel;
   return (
