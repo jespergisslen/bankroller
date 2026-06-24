@@ -169,7 +169,7 @@ export function LogBetModal({ onClose, onSaved }: LogBetModalProps) {
           <div>
             <div style={{ fontWeight: 600, fontSize: 15, letterSpacing: "-0.01em" }}>Log a bet</div>
             <div style={{ color: "var(--text-3)", fontSize: 12, marginTop: 2, fontFamily: "var(--mono)" }}>
-              {step === "details" ? "1 / 2 — Bet details" : "2 / 2 — Publish settings"}
+              {step === "details" ? "1 / 2 · Bet details" : "2 / 2 · Publish settings"}
             </div>
           </div>
           <button onClick={onClose} className="btn sm" style={{ width: 28, height: 28, padding: 0, justifyContent: "center", fontSize: 16 }}>✕</button>
@@ -266,7 +266,7 @@ export function LogBetModal({ onClose, onSaved }: LogBetModalProps) {
                 <input
                   value={sel.match}
                   onChange={e => updateSelection(i, "match", e.target.value)}
-                  placeholder="Match / Event — e.g. Arsenal – Man City"
+                  placeholder="Match / Event, e.g. Arsenal – Man City"
                   style={inputStyle}
                 />
 
@@ -279,7 +279,7 @@ export function LogBetModal({ onClose, onSaved }: LogBetModalProps) {
                   <input
                     value={sel.line}
                     onChange={e => updateSelection(i, "line", e.target.value)}
-                    placeholder="Your pick — e.g. Over 2.5"
+                    placeholder="Your pick, e.g. Over 2.5"
                     style={inputStyle}
                   />
                   <input
@@ -386,7 +386,7 @@ export function LogBetModal({ onClose, onSaved }: LogBetModalProps) {
               <input
                 value={referralLink}
                 onChange={e => setReferralLink(e.target.value)}
-                placeholder="https://… — your affiliate / campaign link to this bet"
+                placeholder="Your affiliate / campaign link to this bet, e.g. https://…"
                 type="url"
                 style={inputStyle}
               />
@@ -512,7 +512,7 @@ export function LogBetModal({ onClose, onSaved }: LogBetModalProps) {
                 border: "1px solid color-mix(in oklch, var(--warn) 30%, transparent)",
                 color: "var(--warn)", fontSize: 12, lineHeight: 1.5,
               }}>
-                This event&apos;s date has already passed — tips can only be published before the match starts. Keep it private, or update the match date.
+                This event&apos;s date has already passed. Tips can only be published before the match starts. Keep it private, or update the match date.
               </div>
             )}
 

@@ -128,7 +128,7 @@ export default function DashboardPage() {
         <div style={{ display: "flex", alignItems: "flex-start", justifyContent: "space-between", marginBottom: 24, gap: 16 }}>
           <div>
             <h1 style={{ fontSize: 22, fontWeight: 600, letterSpacing: "-0.01em" }}>My Bets</h1>
-            <p style={{ color: "var(--text-2)", marginTop: 4, fontSize: 13.5 }}>Full control over where you&apos;re up and down — and why.</p>
+            <p style={{ color: "var(--text-2)", marginTop: 4, fontSize: 13.5 }}>Full control over where you&apos;re up and down, and why.</p>
           </div>
           <div style={{ display: "flex", gap: 8, flexShrink: 0 }}>
             <button className="btn sm">⤓ Export</button>
@@ -339,7 +339,7 @@ export default function DashboardPage() {
                       whiteSpace: "nowrap",
                     }}>
                       {h === "CLV"
-                        ? <span title="Closing Line Value — how your odds compared to the market at kickoff." style={{ cursor: "help", borderBottom: "1px dashed var(--text-4)" }}>CLV ⓘ</span>
+                        ? <span title="Closing Line Value: how your odds compared to the market at kickoff." style={{ cursor: "help", borderBottom: "1px dashed var(--text-4)" }}>CLV ⓘ</span>
                         : h}
                     </th>
                   ))}

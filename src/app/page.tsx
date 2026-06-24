@@ -3,12 +3,12 @@ import Link from "next/link";
 import { fetchPublicBets } from "@/lib/bets";
 
 export const metadata: Metadata = {
-  title: "Bankroller — the terminal for serious bettors",
+  title: "Bankroller: the terminal for serious bettors",
   description:
     "Track every bet, sharpen your edge with closing-line value, and publish your picks to build a verified track record. Free to start.",
   alternates: { canonical: "/" },
   openGraph: {
-    title: "Bankroller — the terminal for serious bettors",
+    title: "Bankroller: the terminal for serious bettors",
     description: "Track your edge. Publish your picks. Build a verified track record.",
     type: "website",
     url: "/",
@@ -31,7 +31,7 @@ const ctaGhost: React.CSSProperties = {
 
 const FEATURES = [
   { t: "Track everything", d: "Log singles & multis, settle win/loss/void, watch net units and ROI build over time." },
-  { t: "Closing-line value", d: "Measure your true edge against the closing line on every pick — not just results." },
+  { t: "Closing-line value", d: "Measure your true edge against the closing line on every pick, not just results." },
   { t: "Publish & get followed", d: "Share tips to the community feed and build a public track record people can follow." },
 ];
 

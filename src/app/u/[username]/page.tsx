@@ -10,10 +10,10 @@ export async function generateMetadata({ params }: Params): Promise<Metadata> {
   const { username } = await params;
   const p = await getTipsterProfile(username);
   if (!p) return { title: "Tipster · Bankroller" };
-  const title = `${p.name} — tipster track record`;
+  const title = `${p.name}: tipster track record`;
   const description = p.bio
     ? p.bio.slice(0, 200)
-    : `${p.name}'s public betting tips and track record on Bankroller — ${p.tips.length} published picks.`;
+    : `${p.name}'s public betting tips and track record on Bankroller, with ${p.tips.length} published picks.`;
   return {
     title: `${title} · Bankroller`,
     description,
@@ -79,7 +79,7 @@ export default async function ProfilePage({ params }: Params) {
         </div>
         {p.bio && <p style={{ color: "var(--text-2)", fontSize: 14, lineHeight: 1.65, marginTop: 14 }}>{p.bio}</p>}
         <p style={{ color: "var(--text-3)", fontSize: 13, lineHeight: 1.6, marginTop: p.bio ? 8 : 14 }}>
-          {p.name}&apos;s verified sports betting tips and track record on Bankroller — yield, win rate and every published pick.
+          {p.name}&apos;s verified sports betting tips and track record on Bankroller: yield, win rate and every published pick.
         </p>
 
         {/* Stats */}

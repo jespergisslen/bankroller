@@ -11,10 +11,10 @@ export async function generateMetadata({ params }: Params): Promise<Metadata> {
   const { id } = await params;
   const tip = await getPublicTip(id);
   if (!tip) return { title: "Tip · Bankroller" };
-  const title = `${tip.match} — ${tip.pick} @ ${tip.odds.toFixed(2)}`;
+  const title = `${tip.match}: ${tip.pick} @ ${tip.odds.toFixed(2)}`;
   const description = tip.analysis
     ? tip.analysis.slice(0, 200)
-    : `${tip.name}'s pick on Bankroller — ${tip.pick} at ${tip.odds.toFixed(2)}.`;
+    : `${tip.name}'s pick on Bankroller: ${tip.pick} at ${tip.odds.toFixed(2)}.`;
   const hasAnalysis = !!tip.analysis?.trim();
   return {
     title: `${title} · Bankroller`,
@@ -32,12 +32,12 @@ export default async function TipPage({ params }: Params) {
   const tip = await getPublicTip(id);
   if (!tip) notFound();
 
-  const shareText = `${tip.match} — ${tip.pick} @ ${tip.odds.toFixed(2)} (${tip.name} on Bankroller)`;
+  const shareText = `${tip.match}: ${tip.pick} @ ${tip.odds.toFixed(2)} (${tip.name} on Bankroller)`;
 
   const jsonLd = {
     "@context": "https://schema.org",
     "@type": "Article",
-    headline: `${tip.match} — ${tip.pick} @ ${tip.odds.toFixed(2)}`,
+    headline: `${tip.match}: ${tip.pick} @ ${tip.odds.toFixed(2)}`,
     ...(tip.analysis ? { articleBody: tip.analysis } : {}),
     datePublished: tip.isoDate,
     author: {

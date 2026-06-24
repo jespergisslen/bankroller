@@ -80,7 +80,7 @@ export default function ProfilePage() {
         <div>
           <h1 style={{ fontSize: 22, fontWeight: 600, letterSpacing: "-0.01em" }}>Edit profile</h1>
           <p style={{ color: "var(--text-2)", marginTop: 4, fontSize: 13.5 }}>
-            Editing <span style={{ color: "var(--accent)" }}>@{active.username}</span> — switch profiles in the top-right menu.
+            Editing <span style={{ color: "var(--accent)" }}>@{active.username}</span>. Switch profiles in the top-right menu.
           </p>
         </div>
         <Link href={`/u/${active.username}`} className="btn sm" style={{ textDecoration: "none", whiteSpace: "nowrap" }}>
@@ -110,7 +110,7 @@ export default function ProfilePage() {
 
         <div style={{ marginBottom: 18 }}>
           <div className="label" style={{ marginBottom: 8 }}>
-            Username <span style={{ color: "var(--text-4)", letterSpacing: 0, textTransform: "none", fontSize: 11 }}>(handle — can&apos;t be changed)</span>
+            Username <span style={{ color: "var(--text-4)", letterSpacing: 0, textTransform: "none", fontSize: 11 }}>(handle, can&apos;t be changed)</span>
           </div>
           <input value={`@${active.username}`} disabled style={{ ...inputStyle, opacity: 0.6, cursor: "not-allowed" }} />
         </div>
@@ -120,7 +120,7 @@ export default function ProfilePage() {
           <textarea
             value={bio}
             onChange={e => setBio(e.target.value.slice(0, BIO_MAX))}
-            placeholder="Tell the community about your betting style — sports, edge, approach…"
+            placeholder="Tell the community about your betting style: sports, edge, approach…"
             rows={4}
             style={{ ...inputStyle, resize: "vertical", lineHeight: 1.6 }}
           />
@@ -196,7 +196,7 @@ export default function ProfilePage() {
         )}
 
         <div style={{ marginTop: 16, paddingTop: 14, borderTop: "1px solid var(--line)", color: "var(--text-4)", fontFamily: "var(--mono)", fontSize: 11, lineHeight: 1.6 }}>
-          One login can hold up to {MAX_PERSONAS} profiles — e.g. your personal handle and a brand. Avatar uploads coming soon; initials shown for now.
+          One login can hold up to {MAX_PERSONAS} profiles, e.g. your personal handle and a brand. Avatar uploads coming soon; initials shown for now.
         </div>
       </div>
     </div>

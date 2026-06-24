@@ -82,7 +82,7 @@ export const RECENT_BETS: Bet[] = [
     ],
   },
   single("03 Jun", "⚽", "Liverpool – Chelsea",  "Top goalscorer", "Salah anytime",  2.30, 2.05, 2.0, "win",  2.60),
-  single("03 Jun", "⛳", "PGA — Memorial",        "1X2",            "Scheffler top 5",2.10, 2.00, 1.5, "win",  1.65),
+  single("03 Jun", "⛳", "PGA · Memorial",        "1X2",            "Scheffler top 5",2.10, 2.00, 1.5, "win",  1.65),
   // Treble: three football 1X2s
   {
     date: "02 Jun", betType: "Treble", stake: 0.5, result: "loss", profit: -0.5,

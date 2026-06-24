@@ -5,7 +5,7 @@ import { join } from "node:path";
 export const runtime = "nodejs";
 export const size = { width: 1200, height: 630 };
 export const contentType = "image/png";
-export const alt = "Bankroller — the terminal for serious bettors";
+export const alt = "Bankroller: the terminal for serious bettors";
 
 async function loadFont(family: string, weight: number): Promise<ArrayBuffer | null> {
   try {

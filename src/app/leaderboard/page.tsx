@@ -3,9 +3,9 @@ import Link from "next/link";
 import { getTopTipsters } from "@/lib/bets";
 
 export const metadata: Metadata = {
-  title: "Sports Betting Tipster Leaderboard — Verified Track Records · Bankroller",
+  title: "Sports Betting Tipster Leaderboard · Verified Track Records · Bankroller",
   description:
-    "The best sports betting tipsters, ranked on a verified, sample-size-adjusted yield (ROI) from every published pick — football, tennis, and more. See who really has an edge.",
+    "The best sports betting tipsters, ranked on a verified, sample-size-adjusted yield (ROI) from every published pick across football, tennis and more. See who really has an edge.",
   keywords: ["sports betting tipsters", "tipster leaderboard", "best betting tips", "verified tipster", "betting yield", "betting ROI"],
   alternates: { canonical: "/leaderboard" },
   openGraph: {
@@ -24,7 +24,7 @@ export default async function LeaderboardPage() {
         <h1 style={{ fontSize: 22, fontWeight: 600, letterSpacing: "-0.01em" }}>Sports betting tipster leaderboard</h1>
         <p style={{ color: "var(--text-2)", marginTop: 6, fontSize: 13.5, lineHeight: 1.55, maxWidth: 600 }}>
           The top sports betting tipsters on Bankroller, ranked by a verified, sample-size-adjusted
-          yield (ROI) across every published pick — so a long, consistent record beats one lucky bet.
+          yield (ROI) across every published pick, so a long, consistent record beats one lucky bet.
           Follow the tipsters who genuinely have an edge.
         </p>
       </div>
@@ -38,7 +38,7 @@ export default async function LeaderboardPage() {
         </summary>
         <div style={{ marginTop: 10, color: "var(--text-3)", fontSize: 12.5, lineHeight: 1.6 }}>
           <p style={{ margin: "0 0 8px" }}>
-            Tipsters are ranked by <strong style={{ color: "var(--text-2)" }}>yield</strong> — net units won divided by total units staked, across all settled public tips.
+            Tipsters are ranked by <strong style={{ color: "var(--text-2)" }}>yield</strong>: net units won divided by total units staked, across all settled public tips.
           </p>
           <p style={{ margin: "0 0 8px" }}>
             To keep a single lucky bet from topping the board, yield is <strong style={{ color: "var(--text-2)" }}>adjusted for sample size</strong>:
@@ -46,7 +46,7 @@ export default async function LeaderboardPage() {
             So 50 tips at a steady +20% outrank one bet at +100%.
           </p>
           <p style={{ margin: 0 }}>
-            Asian half-results count too — a ½ win scores as half a win, a ½ loss as half a loss. Only settled tips count; open tips don&apos;t affect the ranking.
+            Asian half-results count too: a ½ win scores as half a win, a ½ loss as half a loss. Only settled tips count; open tips don&apos;t affect the ranking.
           </p>
         </div>
       </details>

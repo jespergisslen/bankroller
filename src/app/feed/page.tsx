@@ -73,7 +73,7 @@ export default function FeedPage() {
         <div>
           <h1 style={{ fontSize: 22, fontWeight: 600, letterSpacing: "-0.01em" }}>Sports betting tips feed</h1>
           <p style={{ color: "var(--text-2)", marginTop: 4, fontSize: 13.5, lineHeight: 1.55, maxWidth: 560 }}>
-            The latest public sports betting tips — football, tennis and more — from tipsters building a verified track record on Bankroller.
+            The latest public sports betting tips across football, tennis and more, from tipsters building a verified track record on Bankroller.
           </p>
         </div>
         <button className="btn accent sm" onClick={requireAuth}>+ Publish a tip</button>
@@ -106,7 +106,7 @@ export default function FeedPage() {
             </div>
           ) : filtered.length === 0 ? (
             <div style={{ padding: "60px var(--pad)", textAlign: "center", color: "var(--text-3)", fontFamily: "var(--mono)", fontSize: 12.5 }}>
-              {allTips.length === 0 ? "No public tips yet — be the first to publish one." : "No tips match the filter."}
+              {allTips.length === 0 ? "No public tips yet. Be the first to publish one." : "No tips match the filter."}
             </div>
           ) : (
             filtered.map((tip, i) => (
@@ -186,7 +186,7 @@ function FeedRow({ tip, stakeLabel, isLast }: {
 }) {
   const [shareOpen, setShareOpen] = useState(false);
   const bookieUrl = tip.referralLink || BOOKIE_LINKS[tip.bookmaker] || null;
-  const shareText = `${tip.match} — ${tip.pick} @ ${tip.odds.toFixed(2)} (${tip.tipster.name} on Bankroller)`;
+  const shareText = `${tip.match}: ${tip.pick} @ ${tip.odds.toFixed(2)} (${tip.tipster.name} on Bankroller)`;
   const shareId = tip.slug || tip.id;
   const stakeDisplay = `${tip.stake}${stakeLabel === "u" ? "u" : " " + stakeLabel}`;
 
@@ -236,7 +236,7 @@ function FeedRow({ tip, stakeLabel, isLast }: {
             {tip.sport} {tip.league} · {tip.date}
           </span>
           {tip.isMaxbet && (
-            <span title="Maxbet — highest-conviction pick" style={{
+            <span title="Maxbet: highest-conviction pick" style={{
               display: "inline-flex", alignItems: "center", gap: 4,
               fontFamily: "var(--mono)", fontSize: 10, fontWeight: 700, letterSpacing: "0.06em",
               textTransform: "uppercase", color: "var(--accent)",
