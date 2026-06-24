@@ -13,7 +13,7 @@ import type { User } from "@supabase/supabase-js";
 const NAV = [
   { index: "01", label: "My Bets", href: "/dashboard",   hrefOut: "/login" },
   { index: "02", label: "Feed",    href: "/feed",        hrefOut: "/feed" },
-  { index: "03", label: "Profile", href: "/profile",     hrefOut: "/leaderboard" },
+  { index: "03", label: "Leaderboard", href: "/leaderboard", hrefOut: "/leaderboard" },
 ];
 
 function LiveClock() {

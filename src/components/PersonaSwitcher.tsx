@@ -88,8 +88,16 @@ export function PersonaSwitcher({ fallbackInitials, onSignOut }: {
           })}
 
           <div style={{ borderTop: "1px solid var(--line)" }}>
+            <Link href="/profile" onClick={() => setOpen(false)} style={{ display: "block", padding: "9px 12px", fontFamily: "var(--mono)", fontSize: 12, color: "var(--text-2)", textDecoration: "none" }}>
+              Profile
+            </Link>
+            {active?.username && (
+              <Link href={`/u/${active.username}`} onClick={() => setOpen(false)} style={{ display: "block", padding: "9px 12px", borderTop: "1px solid var(--line)", fontFamily: "var(--mono)", fontSize: 12, color: "var(--text-2)", textDecoration: "none" }}>
+                View public profile ↗
+              </Link>
+            )}
             {personas.length < MAX_PERSONAS && (
-              <Link href="/profile" onClick={() => setOpen(false)} style={{ display: "block", padding: "9px 12px", fontFamily: "var(--mono)", fontSize: 12, color: "var(--text-2)", textDecoration: "none" }}>
+              <Link href="/profile" onClick={() => setOpen(false)} style={{ display: "block", padding: "9px 12px", borderTop: "1px solid var(--line)", fontFamily: "var(--mono)", fontSize: 12, color: "var(--text-2)", textDecoration: "none" }}>
                 + New profile
               </Link>
             )}
