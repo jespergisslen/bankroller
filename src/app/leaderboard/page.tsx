@@ -16,8 +16,30 @@ export default async function LeaderboardPage() {
     <div className="fade-in" style={{ maxWidth: 720, margin: "0 auto" }}>
       <div style={{ marginBottom: 22 }}>
         <h1 style={{ fontSize: 22, fontWeight: 600, letterSpacing: "-0.01em" }}>Top tipsters</h1>
-        <p style={{ color: "var(--text-2)", marginTop: 4, fontSize: 13.5 }}>Ranked by verified yield from published tips.</p>
+        <p style={{ color: "var(--text-2)", marginTop: 4, fontSize: 13.5 }}>Ranked by sample-size-adjusted yield from published tips.</p>
       </div>
+
+      <details style={{
+        marginBottom: 18, padding: "12px 16px", borderRadius: "var(--r-m)",
+        border: "1px solid var(--line)", background: "rgba(255,255,255,0.02)",
+      }}>
+        <summary style={{ cursor: "pointer", fontFamily: "var(--mono)", fontSize: 12, color: "var(--text-2)" }}>
+          How is the ranking calculated?
+        </summary>
+        <div style={{ marginTop: 10, color: "var(--text-3)", fontSize: 12.5, lineHeight: 1.6 }}>
+          <p style={{ margin: "0 0 8px" }}>
+            Tipsters are ranked by <strong style={{ color: "var(--text-2)" }}>yield</strong> — net units won divided by total units staked, across all settled public tips.
+          </p>
+          <p style={{ margin: "0 0 8px" }}>
+            To keep a single lucky bet from topping the board, yield is <strong style={{ color: "var(--text-2)" }}>adjusted for sample size</strong>:
+            a track record with few settled tips is pulled toward a neutral 0%, and counts more at face value as the number of tips grows.
+            So 50 tips at a steady +20% outrank one bet at +100%.
+          </p>
+          <p style={{ margin: 0 }}>
+            Asian half-results count too — a ½ win scores as half a win, a ½ loss as half a loss. Only settled tips count; open tips don&apos;t affect the ranking.
+          </p>
+        </div>
+      </details>
 
       <div className="panel" style={{ overflow: "hidden" }}>
         <div style={{
