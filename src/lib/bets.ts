@@ -321,7 +321,13 @@ export interface TipsterRank {
   winRate: number | null;
   netUnits: number;
   yieldPct: number | null;
+  score: number | null;     // sample-size-adjusted yield used for ranking
 }
+
+// Confidence weight for Bayesian shrinkage: a tipster needs roughly this many
+// settled bets before their raw yield is taken mostly at face value. Smaller
+// samples are pulled toward 0% (a neutral, no-edge baseline).
+const RANK_SHRINKAGE_K = 15;
 
 // Rank public tipsters by track record from their settled public tips. Server-safe.
 export async function getTopTipsters(limit = 10): Promise<TipsterRank[]> {
@@ -374,15 +380,30 @@ export async function getTopTipsters(limit = 10): Promise<TipsterRank[]> {
       settled: a.settled,
       wins: a.wins,
       winRate: a.settled ? Math.round((a.wins / a.settled) * 100) : null,
+    const rawYield = a.staked > 0 ? (a.net / a.staked) * 100 : null;
+    // Shrink the raw yield toward 0 based on how many bets are settled.
+    const score = a.settled > 0
+      ? (a.settled / (a.settled + RANK_SHRINKAGE_K)) * (rawYield ?? 0)
+      : null;
+    return {
+      username: prof?.username || "",
+      name,
+      initials: name.slice(0, 2).toUpperCase(),
+      color: AVATAR_COLORS[colorIdx],
+      tips: a.tips,
+      settled: a.settled,
+      wins: a.wins,
+      winRate: a.settled ? Math.round((a.wins / a.settled) * 100) : null,
       netUnits: a.net,
-      yieldPct: a.staked > 0 ? (a.net / a.staked) * 100 : null,
+      yieldPct: rawYield,
+      score,
     };
   }).filter((t) => t.username);
 
-  // Tipsters with a settled record rank first (by yield), then the rest by tip volume.
+  // Rank by sample-size-adjusted score (settled tipsters first), then tip volume.
   ranked.sort((x, y) => {
-    if ((y.yieldPct ?? -Infinity) !== (x.yieldPct ?? -Infinity))
-      return (y.yieldPct ?? -Infinity) - (x.yieldPct ?? -Infinity);
+    if ((y.score ?? -Infinity) !== (x.score ?? -Infinity))
+      return (y.score ?? -Infinity) - (x.score ?? -Infinity);
     return y.tips - x.tips;
   });
 
