@@ -144,12 +144,13 @@ export function BetDrawer({ bet, onClose, onDelete, onSave, onSettle }: BetDrawe
                       style={{
                         flex: 1, flexDirection: "column", gap: 2, padding: "10px 6px",
                         justifyContent: "center", alignItems: "center",
-                        borderColor: active ? color : `color-mix(in oklch, ${color} 35%, transparent)`,
-                        background: active ? `color-mix(in oklch, ${color} 16%, transparent)` : undefined,
-                        color,
+                        opacity: bet.result === "open" || active ? 1 : 0.45,
+                        borderColor: active ? color : "var(--line-2)",
+                        background: active ? `color-mix(in oklch, ${color} 18%, transparent)` : "transparent",
+                        color: active ? color : "var(--text-2)",
                       }}
                     >
-                      <span style={{ fontWeight: 600, fontSize: 13 }}>{label}{active ? " ✓" : ""}</span>
+                      <span style={{ fontWeight: active ? 700 : 600, fontSize: 13 }}>{label}{active ? " ✓" : ""}</span>
                       <span className="num" style={{ fontSize: 11, opacity: 0.85 }}>
                         {p > 0 ? "+" : ""}{p}u
                       </span>

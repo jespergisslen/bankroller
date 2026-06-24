@@ -98,7 +98,14 @@ export default function DashboardPage() {
   const handleSettle = async (result: BetResult, profit: number | null) => {
     if (!selectedBet) return;
     const id = selectedBet.id;
-    if (id) await settleBet(id, result, profit);
+    if (id) {
+      const { error } = await settleBet(id, result, profit);
+      if (error) {
+        // Keep the panel open and tell the user instead of closing silently.
+        window.alert(`Could not update result: ${error}`);
+        return;
+      }
+    }
     await loadBets();
     setSelectedBet(null);
   };
