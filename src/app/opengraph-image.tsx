@@ -1,39 +1,18 @@
 import { ImageResponse } from "next/og";
 import { readFile } from "node:fs/promises";
 import { join } from "node:path";
+import { loadOgFonts } from "@/lib/ogFonts";
 
 export const runtime = "nodejs";
 export const size = { width: 1200, height: 630 };
 export const contentType = "image/png";
 export const alt = "Bankroller: the terminal for serious bettors";
 
-async function loadFont(family: string, weight: number): Promise<ArrayBuffer | null> {
-  try {
-    const css = await fetch(
-      `https://fonts.googleapis.com/css2?family=${family}:wght@${weight}`,
-      { headers: { "User-Agent": "Mozilla/4.0 (compatible; MSIE 6.0; Windows NT 5.1)" } }
-    ).then((r) => r.text());
-    const url = css.match(/src: url\((.+?)\) format/)?.[1];
-    if (!url) return null;
-    return await fetch(url).then((r) => r.arrayBuffer());
-  } catch {
-    return null;
-  }
-}
-
 export default async function Image() {
   const markBuf = await readFile(join(process.cwd(), "public/logo/bankroller-mark-accent.png"));
   const mark = `data:image/png;base64,${markBuf.toString("base64")}`;
 
-  const [grotesk700, grotesk500, mono600] = await Promise.all([
-    loadFont("Space+Grotesk", 700),
-    loadFont("Space+Grotesk", 500),
-    loadFont("IBM+Plex+Mono", 600),
-  ]);
-  const fonts: { name: string; data: ArrayBuffer; weight: 500 | 600 | 700; style: "normal" }[] = [];
-  if (grotesk700) fonts.push({ name: "Grotesk", data: grotesk700, weight: 700, style: "normal" });
-  if (grotesk500) fonts.push({ name: "Grotesk", data: grotesk500, weight: 500, style: "normal" });
-  if (mono600) fonts.push({ name: "Mono", data: mono600, weight: 600, style: "normal" });
+  const fonts = await loadOgFonts();
 
   const accent = "#00e5a0";
   const text = "#f0f0f1";
