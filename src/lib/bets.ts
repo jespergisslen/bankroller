@@ -11,8 +11,11 @@ const AVATAR_COLORS = ["#00e5a0", "#5ad1ff", "#e6b23a", "#b48cff", "#ff7a7a"];
 export function slugify(s: string): string {
   return s
     .toLowerCase()
+    // Letters NFKD can't decompose into base + diacritic.
+    .replace(/ø/g, "o").replace(/æ/g, "ae").replace(/ß/g, "ss").replace(/đ/g, "d").replace(/ł/g, "l")
     .normalize("NFKD")
-    .replace(/[^a-z0-9\s-]/g, "")
+    .replace(/\p{M}/gu, "")
+    .replace(/[^a-z0-9\s-]/g, " ")
     .trim()
     .replace(/\s+/g, "-")
     .replace(/-+/g, "-")
