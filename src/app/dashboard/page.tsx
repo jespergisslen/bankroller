@@ -209,19 +209,11 @@ export default function DashboardPage() {
               }}
               onMouseEnter={e => {
                 (e.currentTarget as HTMLElement).style.borderColor = "color-mix(in oklch, var(--accent) 30%, transparent)";
-                const bar = e.currentTarget.querySelector(".kpi-bar") as HTMLElement;
-                if (bar) bar.style.opacity = "1";
               }}
               onMouseLeave={e => {
                 (e.currentTarget as HTMLElement).style.borderColor = "var(--line)";
-                const bar = e.currentTarget.querySelector(".kpi-bar") as HTMLElement;
-                if (bar) bar.style.opacity = "0";
               }}
             >
-              <div className="kpi-bar" style={{
-                position: "absolute", left: 0, top: 0, bottom: 0,
-                width: 2, background: "var(--accent)", opacity: 0, transition: "opacity 0.15s",
-              }} />
               <div className="label" style={{ marginBottom: 8 }}>{kpi.k}</div>
               <div
                 className={`num ${kpi.up === true ? "pos glow" : kpi.up === null ? "" : "neg"}`}
