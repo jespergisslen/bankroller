@@ -363,8 +363,10 @@ function FeedRow({ tip, stakeLabel, isLast }: {
           <ResultBadge result={tip.result} profit={tip.profit} stakeLabel={stakeLabel} />
         ) : tip.isNew ? (
           <span style={{
-            fontFamily: "var(--mono)", fontSize: 10, padding: "2px 7px", borderRadius: 4,
-            background: "color-mix(in oklch, var(--accent) 12%, transparent)", color: "var(--accent)",
+            fontFamily: "var(--mono)", fontSize: 10, fontWeight: 700, letterSpacing: "0.06em",
+            padding: "2px 7px", borderRadius: 4,
+            background: "color-mix(in oklch, #5ad1ff 12%, transparent)", color: "#5ad1ff",
+            border: "1px solid color-mix(in oklch, #5ad1ff 30%, transparent)",
           }}>NEW</span>
         ) : (
           <span style={{
