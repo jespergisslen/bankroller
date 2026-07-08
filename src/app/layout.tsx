@@ -5,6 +5,7 @@ import { SiteFooter } from "@/components/SiteFooter";
 import { CurrencyProvider } from "@/lib/currencyContext";
 import { PersonaProvider } from "@/lib/personaContext";
 import { SITE_URL } from "@/lib/site";
+import { Analytics } from "@vercel/analytics/next";
 
 export const metadata: Metadata = {
   metadataBase: new URL(SITE_URL),
@@ -42,6 +43,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
               </main>
               <SiteFooter />
             </div>
+            <Analytics />
           </PersonaProvider>
         </CurrencyProvider>
       </body>
