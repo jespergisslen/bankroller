@@ -45,7 +45,7 @@ export default async function Image() {
         {/* Hero copy */}
         <div style={{ display: "flex", flexDirection: "column", margin: "auto 64px" }}>
           <span style={{ fontSize: 76, fontWeight: 700, color: text, letterSpacing: -2, lineHeight: 1.05, maxWidth: 880 }}>
-            The terminal for{" "}
+            {"The terminal for "}
             <span style={{ color: accent }}>serious bettors</span>
           </span>
           <span style={{ fontSize: 32, fontWeight: 500, color: "#c4c4c8", marginTop: 26, maxWidth: 820, lineHeight: 1.35 }}>
