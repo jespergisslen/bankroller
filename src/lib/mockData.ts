@@ -13,11 +13,11 @@ export const BANKROLL_CURVE = (() => {
 export const BANKROLL_NOW = BANKROLL_CURVE[BANKROLL_CURVE.length - 1];
 
 export const DASH_KPIS = [
-  { k: "Bankroll",  v: BANKROLL_NOW.toLocaleString("sv-SE") + " kr", d: "+24.8%", up: true,  sub: "all time" },
+  { k: "Bankroll",  v: "$" + BANKROLL_NOW.toLocaleString("en-US"), d: "+24.8%", up: true,  sub: "all time" },
   { k: "Yield",     v: "+8.4 %",   d: "+0.6",  up: true,  sub: "642 bets" },
   { k: "Win rate",  v: "54.2 %",   d: "+1.1",  up: true,  sub: "348 / 642" },
   { k: "CLV",       v: "+2.1 %",   d: "+0.3",  up: true,  sub: "closing line" },
-  { k: "Open exp.", v: "1 240 kr", d: "5 bets", up: null,  sub: "live" },
+  { k: "Open exp.", v: "$1,240", d: "5 bets", up: null,  sub: "live" },
 ];
 
 export const YIELD_SPORT = [
