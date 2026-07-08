@@ -38,7 +38,7 @@ export const TERMS: GlossaryTerm[] = [
       "Betting in fixed slices of your bankroll instead of cash, so stakes scale with you and your records stay comparable.",
     body: [
       "We've all blown a good month by suddenly betting amounts that had nothing to do with the size of our bankroll. Units are the fix, and they're boring on purpose.",
-      "A unit is just a fixed slice of your bankroll, usually around 1%. Bet in units instead of cash and two things happen: your stakes scale automatically as the bankroll grows or shrinks, and your history stays readable. \"+40 units over the season\" means something. \"+4,200 kr\" means nothing unless you also know what you were staking back then.",
+      "A unit is just a fixed slice of your bankroll, usually around 1%. Bet in units instead of cash and two things happen: your stakes scale automatically as the bankroll grows or shrinks, and your history stays readable. \"+40 units over the season\" means something. \"+$4,200\" means nothing unless you also know what you were staking back then.",
       "Most people settle around 1 to 2 units on a normal play and save the bigger sizes for the spots they're genuinely confident in. The exact number matters less than picking one and sticking to it.",
     ],
     sharpNote:
