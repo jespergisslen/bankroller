@@ -29,7 +29,7 @@ const MARKETS_BY_SPORT: Record<string, string[]> = {
   ],
   Tennis: ["Moneyline", "Set betting", "Total games", "Games handicap", "Player props", "Other"],
   Golf: ["Tournament winner", "18 Holes", "Top 5 / Top 10", "Outright", "Player props", "Other"],
-  Trotting: ["Winner", "Place", "Forecast / Exacta", "Outright", "Other"],
+  Trotting: ["Winner", "Place", "Exacta", "Outright", "Other"],
   Basketball: ["Moneyline", "Point spread", "Over / Under", "Player props", "Other"],
   "Ice Hockey": ["Moneyline", "Puck line", "Over / Under", "BTTS", "Player props", "Other"],
   Other: ["Moneyline", "Over / Under", "Handicap", "Outright", "Player props", "Other"],
