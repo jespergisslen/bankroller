@@ -20,12 +20,23 @@ const SPORTS = [
   { emoji: "🎱", label: "Other" },
 ];
 
-const MARKETS = [
-  "1X2", "Asian Handicap", "Over / Under", "BTTS", "Draw No Bet",
-  "Bet Builder", "Corners", "Cards / Bookings", "Top goalscorer", "Anytime scorer",
-  "Outright", "Set betting", "Total games", "18 Holes", "Tournament winner",
-  "Player props", "Other",
-];
+// Market options depend on the selected sport. "Other" always available as a catch-all.
+const MARKETS_BY_SPORT: Record<string, string[]> = {
+  Football: [
+    "1X2", "Asian Handicap", "Over / Under", "BTTS", "Draw No Bet",
+    "Bet Builder", "Corners", "Cards / Bookings", "Top goalscorer", "Anytime scorer",
+    "Player props", "Other",
+  ],
+  Tennis: ["Moneyline", "Set betting", "Total games", "Games handicap", "Player props", "Other"],
+  Golf: ["Tournament winner", "18 Holes", "Top 5 / Top 10", "Outright", "Player props", "Other"],
+  Trotting: ["Winner", "Place", "Forecast / Exacta", "Outright", "Other"],
+  Basketball: ["Moneyline", "Point spread", "Over / Under", "Player props", "Other"],
+  "Ice Hockey": ["Moneyline", "Puck line", "Over / Under", "BTTS", "Player props", "Other"],
+  Other: ["Moneyline", "Over / Under", "Handicap", "Outright", "Player props", "Other"],
+};
+
+const marketsForSport = (sport: string): string[] =>
+  MARKETS_BY_SPORT[sport] ?? MARKETS_BY_SPORT.Other;
 
 const BOOKMAKERS = [
   "Bet365", "Betsson", "Unibet", "LeoVegas",
@@ -120,7 +131,15 @@ export function LogBetModal({ onClose, onSaved }: LogBetModalProps) {
   };
 
   const updateSelection = (i: number, field: keyof Selection, value: string) => {
-    setSelections(prev => prev.map((s, idx) => idx === i ? { ...s, [field]: value } : s));
+    setSelections(prev => prev.map((s, idx) => {
+      if (idx !== i) return s;
+      const next = { ...s, [field]: value };
+      // Changing sport invalidates a market that doesn't belong to the new sport.
+      if (field === "sport" && next.market && !marketsForSport(value).includes(next.market)) {
+        next.market = "";
+      }
+      return next;
+    }));
   };
 
   const addSelection = () => setSelections(prev => [...prev, emptySelection()]);
@@ -272,9 +291,14 @@ export function LogBetModal({ onClose, onSaved }: LogBetModalProps) {
 
                 {/* Market + Line + Odds */}
                 <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 100px", gap: 10 }}>
-                  <select value={sel.market} onChange={e => updateSelection(i, "market", e.target.value)} style={inputStyle}>
-                    <option value="">Market…</option>
-                    {MARKETS.map(m => <option key={m} value={m}>{m}</option>)}
+                  <select
+                    value={sel.market}
+                    onChange={e => updateSelection(i, "market", e.target.value)}
+                    disabled={!sel.sport}
+                    style={{ ...inputStyle, opacity: sel.sport ? 1 : 0.55, cursor: sel.sport ? "pointer" : "not-allowed" }}
+                  >
+                    <option value="">{sel.sport ? "Market…" : "Select sport first"}</option>
+                    {sel.sport && marketsForSport(sel.sport).map(m => <option key={m} value={m}>{m}</option>)}
                   </select>
                   <input
                     value={sel.line}
