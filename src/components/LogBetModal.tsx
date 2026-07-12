@@ -71,8 +71,40 @@ function makeSelections(count: number, existing: Selection[]): Selection[] {
   return [...existing, ...Array.from({ length: count - existing.length }, emptySelection)];
 }
 
+function InfoTip({ text }: { text: string }) {
+  const [show, setShow] = useState(false);
+  return (
+    <span
+      style={{ position: "relative", display: "inline-flex" }}
+      onMouseEnter={() => setShow(true)}
+      onMouseLeave={() => setShow(false)}
+    >
+      <span
+        role="img"
+        aria-label="What is a unit?"
+        style={{
+          display: "inline-flex", alignItems: "center", justifyContent: "center",
+          width: 14, height: 14, borderRadius: "50%", cursor: "help",
+          border: "1px solid var(--line-3)", color: "var(--text-3)",
+          fontFamily: "var(--mono)", fontSize: 9, fontWeight: 700, lineHeight: 1, textTransform: "none",
+        }}
+      >i</span>
+      {show && (
+        <span style={{
+          position: "absolute", bottom: "calc(100% + 8px)", left: -4, zIndex: 50,
+          width: 230, padding: "9px 11px", borderRadius: 8,
+          background: "var(--bg-2)", border: "1px solid var(--line-2)",
+          color: "var(--text-2)", fontSize: 11.5, lineHeight: 1.5, fontWeight: 400,
+          textTransform: "none", letterSpacing: 0,
+          boxShadow: "0 8px 24px rgba(0,0,0,0.45)", pointerEvents: "none",
+        }}>{text}</span>
+      )}
+    </span>
+  );
+}
+
 export function LogBetModal({ onClose, onSaved }: LogBetModalProps) {
-  const { stakeLabel, currency } = useCurrency();
+  const { stakeLabel } = useCurrency();
   const { activeId, active } = usePersona();
   const [step, setStep] = useState<"details" | "publish">("details");
 
@@ -344,13 +376,16 @@ export function LogBetModal({ onClose, onSaved }: LogBetModalProps) {
             {/* Stake + Match date */}
             <div style={{ display: "grid", gridTemplateColumns: "140px 1fr", gap: 12 }}>
               <div style={{ position: "relative" }}>
-                <div className="label" style={{ marginBottom: 8 }}>Stake</div>
+                <div className="label" style={{ marginBottom: 8, display: "flex", alignItems: "center", gap: 6 }}>
+                  Stake (Units)
+                  <InfoTip text="A unit is a fixed slice of your bankroll, usually about 1%. Staking in units keeps your staking consistent and your track record comparable." />
+                </div>
                 <input
                   value={stake}
                   onChange={e => setStake(e.target.value)}
-                  placeholder={currency === "units" ? "1.5" : "300"}
+                  placeholder="0.0"
                   type="number" min="0"
-                  step={currency === "units" ? "0.25" : "10"}
+                  step="0.25"
                   style={{ ...inputStyle, paddingRight: 34 }}
                 />
                 <div style={{ position: "absolute", right: 10, bottom: 10, fontFamily: "var(--mono)", fontSize: 11, color: "var(--text-3)", pointerEvents: "none" }}>
