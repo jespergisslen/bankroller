@@ -91,13 +91,15 @@ function InfoTip({ text }: { text: string }) {
       >i</span>
       {show && (
         <span style={{
-          // Anchored to the label row (its relative parent), not the icon,
-          // and width-capped so it always stays inside the modal.
+          // Anchored to the label row (its relative parent), not the icon.
+          // Reset the inherited .label styles (uppercase, letter-spacing and
+          // crucially white-space: nowrap) so the text wraps inside the box.
           position: "absolute", bottom: "calc(100% + 8px)", left: 0, zIndex: 50,
-          width: 230, maxWidth: "calc(100vw - 56px)", padding: "9px 11px", borderRadius: 8,
+          display: "block", boxSizing: "border-box",
+          width: 240, maxWidth: "calc(100vw - 56px)", padding: "10px 12px", borderRadius: 8,
           background: "var(--bg-2)", border: "1px solid var(--line-2)",
           color: "var(--text-2)", fontSize: 11.5, lineHeight: 1.5, fontWeight: 400,
-          textTransform: "none", letterSpacing: 0,
+          textTransform: "none", letterSpacing: "normal", whiteSpace: "normal",
           boxShadow: "0 8px 24px rgba(0,0,0,0.45)", pointerEvents: "none",
         }}>{text}</span>
       )}
@@ -380,7 +382,7 @@ export function LogBetModal({ onClose, onSaved }: LogBetModalProps) {
               <div style={{ position: "relative" }}>
                 <div className="label" style={{ position: "relative", marginBottom: 8, display: "flex", alignItems: "center", gap: 6 }}>
                   Stake (Units)
-                  <InfoTip text="A unit is a fixed slice of your bankroll, usually about 1%. Staking in units keeps your staking consistent and your track record comparable." />
+                  <InfoTip text="A unit is a fixed slice of your bankroll, usually around 1%." />
                 </div>
                 <input
                   value={stake}
