@@ -2,7 +2,9 @@
 
 import { createContext, useContext, useState, ReactNode } from "react";
 
-export type Currency = "units" | "SEK" | "EUR" | "GBP" | "USD" | "NOK" | "DKK";
+export type Currency =
+  | "units" | "SEK" | "EUR" | "GBP" | "USD" | "NOK" | "DKK"
+  | "JPY" | "CNY" | "INR" | "KRW" | "HKD" | "SGD";
 
 interface CurrencyCtx {
   currency: Currency;
@@ -19,6 +21,12 @@ const CURRENCIES: { value: Currency; label: string; symbol: string }[] = [
   { value: "USD",   label: "USD ($)",      symbol: "$"   },
   { value: "NOK",   label: "NOK (kr)",     symbol: "kr"  },
   { value: "DKK",   label: "DKK (kr)",     symbol: "kr"  },
+  { value: "JPY",   label: "JPY (¥)",      symbol: "¥"   },
+  { value: "CNY",   label: "CNY (元)",      symbol: "元"  },
+  { value: "INR",   label: "INR (₹)",      symbol: "₹"   },
+  { value: "KRW",   label: "KRW (₩)",      symbol: "₩"   },
+  { value: "HKD",   label: "HKD (HK$)",    symbol: "HK$" },
+  { value: "SGD",   label: "SGD (S$)",     symbol: "S$"  },
 ];
 
 export { CURRENCIES };
