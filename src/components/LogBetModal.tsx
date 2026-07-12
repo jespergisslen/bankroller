@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { useCurrency } from "@/lib/currencyContext";
+import { CURRENCIES, type Currency } from "@/lib/currencyContext";
 import { usePersona } from "@/lib/personaContext";
 import { saveBet } from "@/lib/bets";
 
@@ -108,7 +108,10 @@ function InfoTip({ text }: { text: string }) {
 }
 
 export function LogBetModal({ onClose, onSaved }: LogBetModalProps) {
-  const { stakeLabel } = useCurrency();
+  const [betCurrency, setBetCurrency] = useState<Currency>("units");
+  const curMeta = CURRENCIES.find(c => c.value === betCurrency) ?? CURRENCIES[0];
+  const stakeSuffix = curMeta.symbol;
+  const stakeCurrencyLabel = betCurrency === "units" ? "Units" : curMeta.value;
   const { activeId, active } = usePersona();
   const [step, setStep] = useState<"details" | "publish">("details");
 
@@ -378,22 +381,36 @@ export function LogBetModal({ onClose, onSaved }: LogBetModalProps) {
             )}
 
             {/* Stake + Match date */}
-            <div style={{ display: "grid", gridTemplateColumns: "140px 1fr", gap: 12 }}>
+            <div style={{ display: "grid", gridTemplateColumns: "104px 128px 1fr", gap: 12 }}>
+              <div>
+                <div className="label" style={{ marginBottom: 8 }}>Currency</div>
+                <select
+                  value={betCurrency}
+                  onChange={e => setBetCurrency(e.target.value as Currency)}
+                  style={inputStyle}
+                >
+                  {CURRENCIES.map(c => (
+                    <option key={c.value} value={c.value}>{c.value === "units" ? "Units" : c.value}</option>
+                  ))}
+                </select>
+              </div>
               <div style={{ position: "relative" }}>
                 <div className="label" style={{ position: "relative", marginBottom: 8, display: "flex", alignItems: "center", gap: 6 }}>
-                  Stake (Units)
-                  <InfoTip text="A unit is a fixed slice of your bankroll, usually around 1%." />
+                  Stake ({stakeCurrencyLabel})
+                  {betCurrency === "units" && (
+                    <InfoTip text="A unit is a fixed slice of your bankroll, usually around 1%." />
+                  )}
                 </div>
                 <input
                   value={stake}
                   onChange={e => setStake(e.target.value)}
-                  placeholder="0.0"
+                  placeholder={betCurrency === "units" ? "0.0" : "0"}
                   type="number" min="0"
-                  step="0.25"
+                  step={betCurrency === "units" ? "0.25" : "1"}
                   style={{ ...inputStyle, paddingRight: 34 }}
                 />
                 <div style={{ position: "absolute", right: 10, bottom: 10, fontFamily: "var(--mono)", fontSize: 11, color: "var(--text-3)", pointerEvents: "none" }}>
-                  {stakeLabel}
+                  {stakeSuffix}
                 </div>
               </div>
               <div>
@@ -537,7 +554,7 @@ export function LogBetModal({ onClose, onSaved }: LogBetModalProps) {
                   {combinedOddsStr && (
                     <div className="num pos glow" style={{ fontSize: 17, fontWeight: 700 }}>{combinedOddsStr}</div>
                   )}
-                  <div style={{ color: "var(--text-3)", fontFamily: "var(--mono)", fontSize: 11 }}>{stake} {stakeLabel}</div>
+                  <div style={{ color: "var(--text-3)", fontFamily: "var(--mono)", fontSize: 11 }}>{stake} {stakeSuffix}</div>
                 </div>
               </div>
             </div>
