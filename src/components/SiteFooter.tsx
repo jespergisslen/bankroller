@@ -78,6 +78,12 @@ export function SiteFooter() {
             ))}
           </div>
 
+          {/* Follow */}
+          <div>
+            <div className="label" style={{ marginBottom: 10 }}>Follow</div>
+            <a href="https://x.com/BankrollerBet" target="_blank" rel="noopener noreferrer" style={linkStyle}>X</a>
+          </div>
+
           {/* Get started — only for logged-out / marketing pages */}
           {!inApp && (
             <div>
