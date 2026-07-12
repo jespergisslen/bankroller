@@ -93,7 +93,9 @@ export default async function LeaderboardPage() {
               </span>
               <div style={{ minWidth: 0 }}>
                 <div style={{ fontSize: 13.5, fontWeight: 500, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{t.name}</div>
-                <div style={{ fontFamily: "var(--mono)", fontSize: 10.5, color: "var(--text-3)" }}>@{t.username}</div>
+                <div style={{ fontFamily: "var(--mono)", fontSize: 10.5, color: "var(--text-3)" }}>
+                  @{t.username}{t.currency !== "units" ? ` · ${t.currency}` : ""}
+                </div>
               </div>
             </div>
             <span className="num" style={{ textAlign: "right", fontSize: 13, color: "var(--text-2)" }}>{t.tips}</span>

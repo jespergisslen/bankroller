@@ -330,6 +330,7 @@ export interface TipsterRank {
   netUnits: number;
   yieldPct: number | null;
   score: number | null;     // sample-size-adjusted yield used for ranking
+  currency: string;         // the book these figures are computed from (dominant currency)
 }
 
 // Confidence weight for Bayesian shrinkage: a tipster needs roughly this many
@@ -345,17 +346,24 @@ export async function getTopTipsters(limit = 10): Promise<TipsterRank[]> {
   const headers = { apikey: key, Authorization: `Bearer ${key}` };
 
   const betsRes = await fetch(
-    `${url}/rest/v1/bets?is_public=eq.true&select=profile_id,user_id,result,profit,stake`,
+    `${url}/rest/v1/bets?is_public=eq.true&select=profile_id,user_id,result,profit,stake,currency`,
     { headers, cache: "no-store" }
   );
   if (!betsRes.ok) return [];
   const bets = (await betsRes.json()) as any[];
   if (!bets.length) return [];
 
-  const agg = new Map<string, { tips: number; settled: number; wins: number; net: number; staked: number }>();
+  // Bets are kept as separate books per currency (no FX conversion), so we
+  // aggregate per tipster AND per currency, then rank each tipster on their
+  // dominant book (the currency with the most settled tips).
+  type Book = { tips: number; settled: number; wins: number; net: number; staked: number };
+  const agg = new Map<string, Map<string, Book>>();
   for (const b of bets) {
     const pid = b.profile_id || b.user_id;
-    const a = agg.get(pid) ?? { tips: 0, settled: 0, wins: 0, net: 0, staked: 0 };
+    const cur = b.currency || "units";
+    let byCur = agg.get(pid);
+    if (!byCur) { byCur = new Map(); agg.set(pid, byCur); }
+    const a = byCur.get(cur) ?? { tips: 0, settled: 0, wins: 0, net: 0, staked: 0 };
     a.tips += 1;
     if (b.result === "win" || b.result === "loss" || b.result === "void" || b.result === "half_win" || b.result === "half_loss") {
       a.settled += 1;
@@ -364,7 +372,7 @@ export async function getTopTipsters(limit = 10): Promise<TipsterRank[]> {
       if (b.result === "win") a.wins += 1;
       else if (b.result === "half_win") a.wins += 0.5;
     }
-    agg.set(pid, a);
+    byCur.set(cur, a);
   }
 
   const ids = [...agg.keys()];
@@ -376,7 +384,12 @@ export async function getTopTipsters(limit = 10): Promise<TipsterRank[]> {
   const profMap = new Map(profs.map((p) => [p.id, p]));
 
   const ranked: TipsterRank[] = ids.map((pid) => {
-    const a = agg.get(pid)!;
+    // Pick the dominant book: most settled tips, then most tips, units as tiebreak.
+    const books = [...agg.get(pid)!.entries()];
+    books.sort(([cx, x], [cy, y]) =>
+      y.settled - x.settled || y.tips - x.tips || (cx === "units" ? -1 : cy === "units" ? 1 : 0)
+    );
+    const [currency, a] = books[0];
     const prof = profMap.get(pid);
     const name = prof?.display_name || prof?.username || "Anonymous";
     const rawYield = a.staked > 0 ? (a.net / a.staked) * 100 : null;
@@ -396,6 +409,7 @@ export async function getTopTipsters(limit = 10): Promise<TipsterRank[]> {
       netUnits: a.net,
       yieldPct: rawYield,
       score,
+      currency,
     };
   }).filter((t) => t.username);
 
