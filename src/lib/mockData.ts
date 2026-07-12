@@ -1,19 +1,34 @@
+// A realistic bankroll equity curve: a steady long-term edge with genuine
+// day-to-day swings and the odd drawdown, drifting slowly upward. Generated
+// deterministically (fixed-seed mulberry32) so the server and client render
+// the exact same curve and there is no hydration mismatch.
+export const BANKROLL_START = 10000;
 export const BANKROLL_CURVE = (() => {
-  let v = 20000;
-  const pts = [v];
-  const seed = [120,-80,260,90,-140,310,-60,180,40,-220,260,150,-90,80,330,-180,
-    210,90,-60,270,120,-160,380,-90,140,60,-240,290,170,80,-120,360,-70,200,110,
-    -180,420,90,-60,250,140,-200,330,180,-90,70,290,-150,210,120,80,-110,400,-80,
-    240,160,-190,360,110,-70,300,180,-130,90,420,-160,260,140,80,-100,380,-90,
-    240,170,-180,440,120,-60,320,200,-140,100,460,-150,280,160,90,-110,500,-80,310,210];
-  seed.forEach(d => { v += d; pts.push(v); });
+  const N = 110;
+  let v = BANKROLL_START;
+  const pts = [Math.round(v)];
+  let seed = 0x9e3779b9;
+  const rand = () => {
+    seed = (seed + 0x6d2b79f5) | 0;
+    let t = Math.imul(seed ^ (seed >>> 15), 1 | seed);
+    t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t;
+    return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
+  };
+  for (let i = 1; i < N; i++) {
+    const drift = 23;                     // the edge: steady upward pull
+    const noise = (rand() - 0.5) * 150;   // day-to-day swing (+/- ~75)
+    const wave = Math.sin(i / 6.5) * 22;  // slower winning/losing phases
+    v += drift + noise + wave;
+    pts.push(Math.round(v));
+  }
   return pts;
 })();
 
 export const BANKROLL_NOW = BANKROLL_CURVE[BANKROLL_CURVE.length - 1];
+const BANKROLL_GROWTH_PCT = ((BANKROLL_NOW - BANKROLL_START) / BANKROLL_START) * 100;
 
 export const DASH_KPIS = [
-  { k: "Bankroll",  v: "$" + BANKROLL_NOW.toLocaleString("en-US"), d: "+24.8%", up: true,  sub: "all time" },
+  { k: "Bankroll",  v: "$" + BANKROLL_NOW.toLocaleString("en-US"), d: `+${BANKROLL_GROWTH_PCT.toFixed(1)}%`, up: true,  sub: "all time" },
   { k: "Yield",     v: "+8.4 %",   d: "+0.6",  up: true,  sub: "642 bets" },
   { k: "Win rate",  v: "54.2 %",   d: "+1.1",  up: true,  sub: "348 / 642" },
   { k: "CLV",       v: "+2.1 %",   d: "+0.3",  up: true,  sub: "closing line" },
