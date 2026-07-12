@@ -4,7 +4,6 @@ import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import { Logo } from "./Logo";
-import { CurrencyPicker } from "./CurrencyPicker";
 import { PersonaSwitcher } from "./PersonaSwitcher";
 import { createClient } from "@/lib/supabase";
 import type { User } from "@supabase/supabase-js";
@@ -137,7 +136,6 @@ export function Topbar() {
           {user ? (
             <>
               <LiveClock />
-              <CurrencyPicker />
               <PersonaSwitcher fallbackInitials={initials} onSignOut={handleSignOut} />
             </>
           ) : (
