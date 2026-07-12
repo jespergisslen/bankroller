@@ -41,7 +41,7 @@ const marketsForSport = (sport: string): string[] =>
 const BOOKMAKERS = [
   "Bet365", "Betsson", "Unibet", "LeoVegas",
   "Svenska Spel", "ATG", "Betsafe", "NordicBet",
-  "William Hill", "Pinnacle",
+  "William Hill", "Pinnacle", "Polymarket",
 ];
 
 type BetType = "Single" | "Double" | "Treble" | "Accumulator";

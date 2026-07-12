@@ -17,6 +17,7 @@ const BOOKIE_LINKS: Record<string, string> = {
   "NordicBet":    "https://www.nordicbet.com",
   "William Hill": "https://www.williamhill.com",
   "Pinnacle":     "https://www.pinnacle.com",
+  "Polymarket":   "https://polymarket.com",
   "LeoVegas":     "https://www.leovegas.com",
   "Betsafe":      "https://www.betsafe.com",
   "Svenska Spel": "https://www.svenskaspel.se",
