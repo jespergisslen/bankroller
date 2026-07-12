@@ -276,10 +276,10 @@ export default function DashboardPage() {
           </div>
         )}
 
-        {/* KPI strip */}
+        {/* KPI strip — raised so a KPI tooltip paints above the sections below */}
         <div
           className="d1 fade-in kpi-grid"
-          style={{ display: "grid", gridTemplateColumns: "repeat(5, 1fr)", gap: 12, marginBottom: 20 }}
+          style={{ display: "grid", gridTemplateColumns: "repeat(5, 1fr)", gap: 12, marginBottom: 20, position: "relative", zIndex: 5 }}
         >
           {kpis.map((kpi) => (
             <div
