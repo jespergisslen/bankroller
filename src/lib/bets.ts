@@ -453,6 +453,7 @@ export async function fetchMyBets(profileId?: string): Promise<Bet[]> {
     isoDate: b.date,
     betType: b.bet_type as Bet["betType"],
     stake: Number(b.stake),
+    currency: b.currency ?? "units",
     result: b.result,
     profit: b.profit !== null ? Number(b.profit) : null,
     bookmaker: b.bookmaker,

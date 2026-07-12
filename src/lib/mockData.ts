@@ -66,6 +66,7 @@ export type Bet = {
   isoDate?: string;     // raw YYYY-MM-DD event date (for overdue-settlement checks)
   betType: "Single" | "Double" | "Treble" | "Accumulator";
   stake: number;
+  currency?: string;
   result: string;
   profit: number | null;
   bookmaker?: string | null;

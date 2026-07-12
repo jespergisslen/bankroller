@@ -9,14 +9,13 @@ import { type Bet } from "@/lib/mockData";
 import { fetchMyBets, updateClosingOdds, deleteBet, settleBet, RESULT_LABEL, type BetResult } from "@/lib/bets";
 import { createClient } from "@/lib/supabase";
 import { computeStats } from "@/lib/stats";
-import { useCurrency } from "@/lib/currencyContext";
+import { CURRENCIES } from "@/lib/currencyContext";
 import { usePersona } from "@/lib/personaContext";
 
 const RANGES = ["1M", "3M", "6M", "YTD", "ALL"];
 
 export default function DashboardPage() {
   const router = useRouter();
-  const { format } = useCurrency();
   const { activeId, active } = usePersona();
   const [range, setRange] = useState("3M");
   const [showModal, setShowModal] = useState(false);
@@ -24,6 +23,7 @@ export default function DashboardPage() {
   const [loadingBets, setLoadingBets] = useState(true);
   const [selectedBet, setSelectedBet] = useState<Bet | null>(null);
   const [dismissedOverdue, setDismissedOverdue] = useState<string[]>([]);
+  const [activeCurrency, setActiveCurrency] = useState("units");
 
   useEffect(() => {
     try {
@@ -50,14 +50,29 @@ export default function DashboardPage() {
     try { localStorage.setItem("bankroller_dismissed_overdue", JSON.stringify(merged)); } catch { /* ignore */ }
   };
 
-  const stats = useMemo(() => computeStats(bets), [bets]);
+  // Bets are kept as separate books per currency (no conversion). The dashboard
+  // shows one book at a time; the toggle only appears when there's more than one.
+  const currencies = useMemo(() => {
+    const present = new Set(bets.map((b) => b.currency ?? "units"));
+    const ordered = CURRENCIES.map((c) => c.value).filter((v) => present.has(v));
+    return ordered.length ? ordered : ["units"];
+  }, [bets]);
+  const effectiveCurrency = currencies.includes(activeCurrency) ? activeCurrency : currencies[0];
+  const curSym = CURRENCIES.find((c) => c.value === effectiveCurrency)?.symbol ?? "u";
+  const unitSfx = effectiveCurrency === "units" ? "u" : ` ${curSym}`;
+  const viewBets = useMemo(
+    () => bets.filter((b) => (b.currency ?? "units") === effectiveCurrency),
+    [bets, effectiveCurrency],
+  );
+
+  const stats = useMemo(() => computeStats(viewBets), [viewBets]);
   const maxSport = Math.max(1, ...stats.bySport.map(s => Math.abs(s.val)));
   const maxMarket = Math.max(1, ...stats.byMarket.map(m => Math.abs(m.val)));
 
   const kpis = [
     {
       k: "Net units",
-      v: `${stats.netUnits >= 0 ? "+" : ""}${stats.netUnits.toFixed(2)}u`,
+      v: `${stats.netUnits >= 0 ? "+" : ""}${stats.netUnits.toFixed(2)}${unitSfx}`,
       up: stats.netUnits > 0 ? true : stats.netUnits < 0 ? false : null,
       sub: stats.betCount > 0 ? `${stats.betCount} bets` : "no bets yet",
     },
@@ -81,7 +96,7 @@ export default function DashboardPage() {
     },
     {
       k: "Open exp.",
-      v: `${stats.openExposure.toFixed(2)}u`,
+      v: `${stats.openExposure.toFixed(2)}${unitSfx}`,
       up: null,
       sub: stats.openCount > 0 ? `${stats.openCount} open` : "none",
     },
@@ -191,6 +206,32 @@ export default function DashboardPage() {
           </div>
         )}
 
+        {/* Currency books — only when the user has bets in more than one */}
+        {currencies.length > 1 && (
+          <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 14, flexWrap: "wrap" }}>
+            <span className="label" style={{ marginRight: 2 }}>Book</span>
+            {currencies.map((c) => {
+              const on = c === effectiveCurrency;
+              const meta = CURRENCIES.find((x) => x.value === c);
+              return (
+                <button
+                  key={c}
+                  onClick={() => setActiveCurrency(c)}
+                  style={{
+                    fontFamily: "var(--mono)", fontSize: 11, cursor: "pointer",
+                    padding: "5px 11px", borderRadius: 20,
+                    border: `1px solid ${on ? "color-mix(in oklch, var(--accent) 45%, transparent)" : "var(--line-2)"}`,
+                    background: on ? "color-mix(in oklch, var(--accent) 12%, transparent)" : "transparent",
+                    color: on ? "var(--accent)" : "var(--text-3)", transition: "all 0.2s",
+                  }}
+                >
+                  {c === "units" ? "Units" : meta?.value}
+                </button>
+              );
+            })}
+          </div>
+        )}
+
         {/* KPI strip */}
         <div
           className="d1 fade-in kpi-grid"
@@ -267,7 +308,7 @@ export default function DashboardPage() {
               )}
               <div style={{ display: "grid", gridTemplateColumns: "repeat(3,1fr)", gap: 0, marginTop: 16, borderTop: "1px solid var(--line)", paddingTop: 14 }}>
                 {[
-                  { label: "Total staked", val: `${stats.totalStaked.toFixed(1)}u`, pos: null },
+                  { label: "Total staked", val: `${stats.totalStaked.toFixed(1)}${unitSfx}`, pos: null },
                   { label: "Settled", val: `${stats.settledCount}`, pos: null },
                   { label: "Open", val: `${stats.openCount}`, pos: null },
                 ].map(s => (
@@ -393,7 +434,7 @@ export default function DashboardPage() {
                 </tr>
               </thead>
               <tbody>
-                {bets.map((bet, i) => (
+                {viewBets.map((bet, i) => (
                   <BetRow key={i} bet={bet} onClick={() => setSelectedBet(bet)} />
                 ))}
               </tbody>
@@ -403,7 +444,7 @@ export default function DashboardPage() {
                 Loading…
               </div>
             )}
-            {!loadingBets && bets.length === 0 && (
+            {!loadingBets && viewBets.length === 0 && (
               <div style={{ padding: "48px var(--pad)", textAlign: "center" }}>
                 <div style={{ fontSize: 28, marginBottom: 10 }}>📋</div>
                 <div style={{ color: "var(--text-2)", fontWeight: 500, marginBottom: 6 }}>No bets yet</div>
@@ -413,7 +454,7 @@ export default function DashboardPage() {
             )}
           </div>
           <div style={{ padding: "12px var(--pad)", borderTop: "1px solid var(--line)", color: "var(--text-3)", fontFamily: "var(--mono)", fontSize: 11.5 }}>
-            Showing {bets.length} bets
+            Showing {viewBets.length} bets
           </div>
         </div>
       </div>
@@ -424,6 +465,8 @@ export default function DashboardPage() {
 // ── BetRow ──────────────────────────────────────────────────
 
 function BetRow({ bet, onClick }: { bet: Bet; onClick: () => void }) {
+  const betCur = bet.currency ?? "units";
+  const stakeSfx = betCur === "units" ? "u" : ` ${CURRENCIES.find((c) => c.value === betCur)?.symbol ?? ""}`;
   const isMulti = bet.betType !== "Single";
   const sel0 = bet.selections[0];
   const combinedOdds = bet.selections.reduce((acc, s) => acc * s.odds, 1);
@@ -515,7 +558,7 @@ function BetRow({ bet, onClick }: { bet: Bet; onClick: () => void }) {
 
       {/* Stake — hidden on mobile */}
       <td className="col-stake" style={{ padding: "0 var(--pad)", textAlign: "right" }}>
-        <span className="num" style={{ fontSize: 13, color: "var(--text-2)" }}>{bet.stake}u</span>
+        <span className="num" style={{ fontSize: 13, color: "var(--text-2)" }}>{bet.stake}{stakeSfx}</span>
       </td>
 
       {/* Result */}
