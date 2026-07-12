@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { fetchPublicBets } from "@/lib/bets";
+import { HeroShowcase } from "@/components/HeroShowcase";
 
 export const metadata: Metadata = {
   title: "Bankroller: the terminal for serious bettors",
@@ -66,6 +67,11 @@ export default async function Home() {
             <Link href="/feed" style={ctaGhost}>Browse the feed ↗</Link>
           </div>
         </div>
+      </section>
+
+      {/* Product showcase — what you get once you're in */}
+      <section style={{ padding: "0 8px 8px" }}>
+        <HeroShowcase />
       </section>
 
       {/* Features */}
