@@ -5,7 +5,9 @@ export const SPORT_EMOJI: Record<string, string> = {
   Football: "⚽", Tennis: "🎾", Golf: "⛳", Trotting: "🐎",
   Basketball: "🏀", "Ice Hockey": "🏒", Other: "🎱",
 };
-const AVATAR_COLORS = ["#00e5a0", "#5ad1ff", "#e6b23a", "#b48cff", "#ff7a7a"];
+// Avatars are intentionally neutral: color is not a random per-name label.
+// Standing (leaderboard top 3) is shown with a rank medal instead.
+const NEUTRAL_AVATAR = "#8a8d96";
 
 // Readable, URL-safe slug from arbitrary text.
 export function slugify(s: string): string {
@@ -101,7 +103,6 @@ export async function fetchPublicBets(opts?: { limit?: number; before?: string }
     const prof = profileMap.get(b.profile_id || b.user_id);
     const name = prof?.display_name || prof?.username || "Anonymous";
     const initials = name.slice(0, 2).toUpperCase();
-    const colorIdx = name.charCodeAt(0) % AVATAR_COLORS.length;
 
     const pick = isMulti
       ? sels.map((s: any) => s.line || s.match).join(" + ")
@@ -110,7 +111,7 @@ export async function fetchPublicBets(opts?: { limit?: number; before?: string }
     return {
       id: b.id,
       slug: b.slug || b.id,
-      tipster: { name, username: prof?.username || "", initials, color: AVATAR_COLORS[colorIdx], verified: false },
+      tipster: { name, username: prof?.username || "", initials, color: NEUTRAL_AVATAR, verified: false },
       sport: SPORT_EMOJI[sel0.sport] ?? sel0.sport ?? "🎱",
       league: isMulti ? `${b.bet_type} · ${sels.length} selections` : (sel0.market || ""),
       match: isMulti ? sels.map((s: any) => s.match.split(" – ")[0]).join(" + ") : sel0.match,
@@ -212,7 +213,6 @@ export async function getPublicTip(slugOrId: string): Promise<TipData | null> {
   const sel0 = sels[0] ?? {};
   const isMulti = b.bet_type !== "Single";
   const combinedOdds = sels.reduce((acc, s) => acc * Number(s.odds), 1);
-  const colorIdx = name.charCodeAt(0) % AVATAR_COLORS.length;
 
   return {
     id: b.id,
@@ -220,7 +220,7 @@ export async function getPublicTip(slugOrId: string): Promise<TipData | null> {
     name,
     username: prof?.username || "",
     initials: name.slice(0, 2).toUpperCase(),
-    color: AVATAR_COLORS[colorIdx],
+    color: NEUTRAL_AVATAR,
     verified: false,
     sportEmoji: SPORT_EMOJI[sel0.sport] ?? "🎱",
     sportLabel: sel0.sport ?? "",
@@ -284,7 +284,6 @@ export async function getTipsterProfile(username: string): Promise<TipsterProfil
   );
   const bets = betsRes.ok ? await betsRes.json() : [];
   const name = prof.display_name || prof.username || "Anonymous";
-  const colorIdx = name.charCodeAt(0) % AVATAR_COLORS.length;
 
   const tips = (bets as any[]).map((b) => {
     const sels = (b.selections as any[]).slice().sort((a, c) => (a.sort_order ?? 0) - (c.sort_order ?? 0));
@@ -313,7 +312,7 @@ export async function getTipsterProfile(username: string): Promise<TipsterProfil
     name,
     username: prof.username,
     initials: name.slice(0, 2).toUpperCase(),
-    color: AVATAR_COLORS[colorIdx],
+    color: NEUTRAL_AVATAR,
     bio: prof.bio || "",
     tips,
   };
@@ -380,7 +379,6 @@ export async function getTopTipsters(limit = 10): Promise<TipsterRank[]> {
     const a = agg.get(pid)!;
     const prof = profMap.get(pid);
     const name = prof?.display_name || prof?.username || "Anonymous";
-    const colorIdx = name.charCodeAt(0) % AVATAR_COLORS.length;
     const rawYield = a.staked > 0 ? (a.net / a.staked) * 100 : null;
     // Shrink the raw yield toward 0 based on how many bets are settled.
     const score = a.settled > 0
@@ -390,7 +388,7 @@ export async function getTopTipsters(limit = 10): Promise<TipsterRank[]> {
       username: prof?.username || "",
       name,
       initials: name.slice(0, 2).toUpperCase(),
-      color: AVATAR_COLORS[colorIdx],
+      color: NEUTRAL_AVATAR,
       tips: a.tips,
       settled: a.settled,
       wins: a.wins,

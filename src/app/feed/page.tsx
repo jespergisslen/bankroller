@@ -6,6 +6,7 @@ import { useCurrency } from "@/lib/currencyContext";
 import { createClient } from "@/lib/supabase";
 import { fetchPublicBets, getTopTipsters, type PublicTip, type TipsterRank } from "@/lib/bets";
 import { ShareModal } from "@/components/ShareModal";
+import { RankMedal, medalColor } from "@/components/RankMedal";
 import Link from "next/link";
 
 const BOOKIE_LINKS: Record<string, string> = {
@@ -91,6 +92,9 @@ export default function FeedPage() {
   }
   // Latest / Upcoming / Settled keep the server order (newest placed first).
 
+  // Top-3 tipsters (by yield) get a rank medal wherever their avatar appears.
+  const topRank = new Map(topTipsters.slice(0, 3).map((t, i) => [t.username, i + 1]));
+
   return (
     <div className="fade-in">
       {/* Page head */}
@@ -133,7 +137,7 @@ export default function FeedPage() {
             </div>
           ) : (
             filtered.map((tip, i) => (
-              <FeedRow key={i} tip={tip} stakeLabel={stakeLabel} isLast={i === filtered.length - 1 && !hasMore} />
+              <FeedRow key={i} tip={tip} stakeLabel={stakeLabel} rank={topRank.get(tip.tipster.username ?? "")} isLast={i === filtered.length - 1 && !hasMore} />
             ))
           )}
 
@@ -169,7 +173,7 @@ export default function FeedPage() {
                   onMouseEnter={e => (e.currentTarget as HTMLElement).style.background = "rgba(255,255,255,0.02)"}
                   onMouseLeave={e => (e.currentTarget as HTMLElement).style.background = "transparent"}
                 >
-                  <span style={{ fontFamily: "var(--mono)", fontSize: 11, color: i < 3 ? "var(--accent)" : "var(--text-3)", fontWeight: i < 3 ? 600 : 400 }}>
+                  <span style={{ fontFamily: "var(--mono)", fontSize: 11, color: medalColor(i + 1) ?? "var(--text-3)", fontWeight: i < 3 ? 600 : 400 }}>
                     {String(i + 1).padStart(2, "0")}
                   </span>
                   <div style={{
@@ -210,9 +214,10 @@ export default function FeedPage() {
   );
 }
 
-function FeedRow({ tip, stakeLabel, isLast }: {
+function FeedRow({ tip, stakeLabel, rank, isLast }: {
   tip: FeedTip;
   stakeLabel: string;
+  rank?: number;
   isLast: boolean;
 }) {
   const [shareOpen, setShareOpen] = useState(false);
@@ -234,14 +239,16 @@ function FeedRow({ tip, stakeLabel, isLast }: {
       {/* Avatar — links to the tipster's profile */}
       {(() => {
         const avatar = (
-          <div style={{
-            width: 44, height: 44, borderRadius: 11,
-            background: tip.tipster.color + "22",
-            border: `1px solid ${tip.tipster.color}44`,
-            display: "flex", alignItems: "center", justifyContent: "center",
-            fontFamily: "var(--mono)", fontSize: 13, fontWeight: 700, color: tip.tipster.color,
-            flexShrink: 0,
-          }}>{tip.tipster.initials}</div>
+          <div style={{ position: "relative", width: 44, height: 44, flexShrink: 0 }}>
+            <div style={{
+              width: 44, height: 44, borderRadius: 11,
+              background: tip.tipster.color + "22",
+              border: `1px solid ${tip.tipster.color}44`,
+              display: "flex", alignItems: "center", justifyContent: "center",
+              fontFamily: "var(--mono)", fontSize: 13, fontWeight: 700, color: tip.tipster.color,
+            }}>{tip.tipster.initials}</div>
+            <RankMedal rank={rank} />
+          </div>
         );
         return tip.tipster.username ? (
           <a href={`/u/${tip.tipster.username}`} aria-label={`${tip.tipster.name}'s profile`} style={{ textDecoration: "none", flexShrink: 0 }}>

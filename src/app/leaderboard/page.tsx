@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { getTopTipsters } from "@/lib/bets";
+import { RankMedal, medalColor } from "@/components/RankMedal";
 
 export const metadata: Metadata = {
   title: "Sports Betting Tipster Leaderboard · Verified Track Records · Bankroller",
@@ -77,16 +78,19 @@ export default async function LeaderboardPage() {
               textDecoration: "none", color: "inherit",
             }}
           >
-            <span style={{ fontFamily: "var(--mono)", fontSize: 12, color: i < 3 ? "var(--accent)" : "var(--text-3)", fontWeight: i < 3 ? 600 : 400 }}>
+            <span style={{ fontFamily: "var(--mono)", fontSize: 12, color: medalColor(i + 1) ?? "var(--text-3)", fontWeight: i < 3 ? 600 : 400 }}>
               {String(i + 1).padStart(2, "0")}
             </span>
             <div style={{ display: "flex", alignItems: "center", gap: 10, minWidth: 0 }}>
-              <span style={{
-                width: 30, height: 30, borderRadius: 8, flexShrink: 0,
-                background: t.color + "22", border: `1px solid ${t.color}44`,
-                display: "flex", alignItems: "center", justifyContent: "center",
-                fontFamily: "var(--mono)", fontSize: 10.5, fontWeight: 700, color: t.color,
-              }}>{t.initials}</span>
+              <span style={{ position: "relative", display: "inline-block", width: 30, height: 30, flexShrink: 0 }}>
+                <span style={{
+                  width: 30, height: 30, borderRadius: 8,
+                  background: t.color + "22", border: `1px solid ${t.color}44`,
+                  display: "flex", alignItems: "center", justifyContent: "center",
+                  fontFamily: "var(--mono)", fontSize: 10.5, fontWeight: 700, color: t.color,
+                }}>{t.initials}</span>
+                <RankMedal rank={i < 3 ? i + 1 : undefined} size={15} />
+              </span>
               <div style={{ minWidth: 0 }}>
                 <div style={{ fontSize: 13.5, fontWeight: 500, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{t.name}</div>
                 <div style={{ fontFamily: "var(--mono)", fontSize: 10.5, color: "var(--text-3)" }}>@{t.username}</div>
