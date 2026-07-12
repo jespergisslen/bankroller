@@ -15,6 +15,11 @@ import { usePersona } from "@/lib/personaContext";
 
 const RANGES = ["1M", "3M", "6M", "YTD", "ALL"];
 
+// Optional explanatory tooltips for KPI tiles, keyed by label.
+const KPI_INFO: Record<string, string> = {
+  "Open exp.": "Open exposure: the total stake tied up in bets that haven't been settled yet. Your money currently on the table.",
+};
+
 export default function DashboardPage() {
   const router = useRouter();
   const { activeId, active } = usePersona();
@@ -283,7 +288,6 @@ export default function DashboardPage() {
               style={{
                 padding: "14px 15px 13px",
                 position: "relative",
-                overflow: "hidden",
                 cursor: "default",
                 transition: "border-color 0.15s",
               }}
@@ -294,7 +298,10 @@ export default function DashboardPage() {
                 (e.currentTarget as HTMLElement).style.borderColor = "var(--line)";
               }}
             >
-              <div className="label" style={{ marginBottom: 8 }}>{kpi.k}</div>
+              <div className="label" style={{ marginBottom: 8, display: "flex", alignItems: "center", gap: 5 }}>
+                {kpi.k}
+                {KPI_INFO[kpi.k] && <InfoTip text={KPI_INFO[kpi.k]} align="right" placement="bottom" />}
+              </div>
               <div
                 className={`num ${kpi.up === true ? "pos glow" : kpi.up === null ? "" : "neg"}`}
                 style={{ fontSize: 25, fontWeight: 500, letterSpacing: "-0.02em", lineHeight: 1 }}
