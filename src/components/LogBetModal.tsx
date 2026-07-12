@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { CURRENCIES, type Currency } from "@/lib/currencyContext";
 import { usePersona } from "@/lib/personaContext";
 import { saveBet } from "@/lib/bets";
@@ -109,6 +109,15 @@ function InfoTip({ text }: { text: string }) {
 
 export function LogBetModal({ onClose, onSaved }: LogBetModalProps) {
   const [betCurrency, setBetCurrency] = useState<Currency>("units");
+  // Remember the last currency used so it defaults on the next Log a bet.
+  useEffect(() => {
+    const saved = localStorage.getItem("bankroller:betCurrency");
+    if (saved && CURRENCIES.some(c => c.value === saved)) setBetCurrency(saved as Currency);
+  }, []);
+  const chooseCurrency = (c: Currency) => {
+    setBetCurrency(c);
+    localStorage.setItem("bankroller:betCurrency", c);
+  };
   const curMeta = CURRENCIES.find(c => c.value === betCurrency) ?? CURRENCIES[0];
   const stakeSuffix = curMeta.symbol;
   const stakeCurrencyLabel = betCurrency === "units" ? "Units" : curMeta.value;
@@ -142,6 +151,7 @@ export function LogBetModal({ onClose, onSaved }: LogBetModalProps) {
     const { error } = await saveBet({
       betType,
       stake: parseFloat(stake),
+      currency: betCurrency,
       matchDate: matchDate || undefined,
       profileId: activeId ?? undefined,
       bookmaker: showCustomBookie ? customBookmaker : bookmaker,
@@ -386,7 +396,7 @@ export function LogBetModal({ onClose, onSaved }: LogBetModalProps) {
                 <div className="label" style={{ marginBottom: 8 }}>Currency</div>
                 <select
                   value={betCurrency}
-                  onChange={e => setBetCurrency(e.target.value as Currency)}
+                  onChange={e => chooseCurrency(e.target.value as Currency)}
                   style={inputStyle}
                 >
                   {CURRENCIES.map(c => (

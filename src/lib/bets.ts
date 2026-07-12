@@ -477,6 +477,7 @@ export async function fetchMyBets(profileId?: string): Promise<Bet[]> {
 export async function saveBet(params: {
   betType: Bet["betType"];
   stake: number;
+  currency?: string;
   matchDate?: string;
   profileId?: string;
   bookmaker: string;
@@ -498,6 +499,7 @@ export async function saveBet(params: {
       profile_id: params.profileId ?? user.id,
       bet_type: params.betType,
       stake: params.stake,
+      currency: params.currency || "units",
       ...(params.matchDate ? { date: params.matchDate } : {}),
       bookmaker: params.bookmaker || null,
       referral_link: params.referralLink || null,
