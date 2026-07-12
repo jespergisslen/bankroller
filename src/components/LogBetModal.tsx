@@ -75,7 +75,7 @@ function InfoTip({ text }: { text: string }) {
   const [show, setShow] = useState(false);
   return (
     <span
-      style={{ position: "relative", display: "inline-flex" }}
+      style={{ display: "inline-flex" }}
       onMouseEnter={() => setShow(true)}
       onMouseLeave={() => setShow(false)}
     >
@@ -91,8 +91,10 @@ function InfoTip({ text }: { text: string }) {
       >i</span>
       {show && (
         <span style={{
-          position: "absolute", bottom: "calc(100% + 8px)", left: -4, zIndex: 50,
-          width: 230, padding: "9px 11px", borderRadius: 8,
+          // Anchored to the label row (its relative parent), not the icon,
+          // and width-capped so it always stays inside the modal.
+          position: "absolute", bottom: "calc(100% + 8px)", left: 0, zIndex: 50,
+          width: 230, maxWidth: "calc(100vw - 56px)", padding: "9px 11px", borderRadius: 8,
           background: "var(--bg-2)", border: "1px solid var(--line-2)",
           color: "var(--text-2)", fontSize: 11.5, lineHeight: 1.5, fontWeight: 400,
           textTransform: "none", letterSpacing: 0,
@@ -376,7 +378,7 @@ export function LogBetModal({ onClose, onSaved }: LogBetModalProps) {
             {/* Stake + Match date */}
             <div style={{ display: "grid", gridTemplateColumns: "140px 1fr", gap: 12 }}>
               <div style={{ position: "relative" }}>
-                <div className="label" style={{ marginBottom: 8, display: "flex", alignItems: "center", gap: 6 }}>
+                <div className="label" style={{ position: "relative", marginBottom: 8, display: "flex", alignItems: "center", gap: 6 }}>
                   Stake (Units)
                   <InfoTip text="A unit is a fixed slice of your bankroll, usually about 1%. Staking in units keeps your staking consistent and your track record comparable." />
                 </div>
