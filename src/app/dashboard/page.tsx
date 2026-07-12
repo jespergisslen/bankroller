@@ -9,6 +9,7 @@ import { type Bet } from "@/lib/mockData";
 import { fetchMyBets, updateClosingOdds, deleteBet, settleBet, RESULT_LABEL, type BetResult } from "@/lib/bets";
 import { createClient } from "@/lib/supabase";
 import { computeStats } from "@/lib/stats";
+import { InfoTip } from "@/components/InfoTip";
 import { CURRENCIES } from "@/lib/currencyContext";
 import { usePersona } from "@/lib/personaContext";
 
@@ -109,6 +110,44 @@ export default function DashboardPage() {
       .catch(() => {});
   }, [router]);
 
+  // Export the active currency book to CSV.
+  const exportCsv = () => {
+    if (!viewBets.length) return;
+    const esc = (v: string | number | null | undefined) => {
+      const s = v === null || v === undefined ? "" : String(v);
+      return /[",\n]/.test(s) ? `"${s.replace(/"/g, '""')}"` : s;
+    };
+    const header = ["Date", "Type", "Sport", "Match", "Market", "Pick", "Odds", "Currency", "Stake", "Result", "Profit", "CLV%"];
+    const rows = viewBets.map((b) => {
+      const s0 = b.selections[0];
+      const isMulti = b.betType !== "Single";
+      const odds = isMulti ? b.selections.reduce((a, s) => a * s.odds, 1) : s0?.odds;
+      const clv = !isMulti && s0?.closingOdds ? (((s0.odds / s0.closingOdds) - 1) * 100).toFixed(1) : "";
+      return [
+        b.isoDate ?? b.date,
+        b.betType,
+        isMulti ? "" : (s0?.sport ?? ""),
+        isMulti ? `${b.betType} (${b.selections.length} legs)` : (s0?.match ?? ""),
+        isMulti ? "" : (s0?.market ?? ""),
+        isMulti ? "" : (s0?.line ?? ""),
+        typeof odds === "number" ? odds.toFixed(2) : "",
+        b.currency ?? "units",
+        b.stake,
+        b.result,
+        b.profit ?? "",
+        clv,
+      ].map(esc).join(",");
+    });
+    const csv = [header.join(","), ...rows].join("\n");
+    const blob = new Blob([csv], { type: "text/csv;charset=utf-8;" });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = `bankroller-${effectiveCurrency}-bets-${new Date().toISOString().slice(0, 10)}.csv`;
+    a.click();
+    URL.revokeObjectURL(url);
+  };
+
   const loadBets = useCallback(async () => {
     setLoadingBets(true);
     const data = await fetchMyBets(activeId ?? undefined);
@@ -172,7 +211,7 @@ export default function DashboardPage() {
             <p style={{ color: "var(--text-2)", marginTop: 4, fontSize: 13.5 }}>Full control over where you&apos;re up and down, and why.</p>
           </div>
           <div style={{ display: "flex", gap: 8, flexShrink: 0 }}>
-            <button className="btn sm">⤓ Export</button>
+            <button className="btn sm" onClick={exportCsv} disabled={!viewBets.length}>⤓ Export</button>
             <button className="btn accent sm" onClick={() => setShowModal(true)}>+ Log a bet</button>
           </div>
         </div>
@@ -426,9 +465,12 @@ export default function DashboardPage() {
                       textAlign: i >= 2 ? "right" : "left",
                       whiteSpace: "nowrap",
                     }}>
-                      {h === "CLV"
-                        ? <span title="Closing Line Value: how your odds compared to the market at kickoff." style={{ cursor: "help", borderBottom: "1px dashed var(--text-4)" }}>CLV ⓘ</span>
-                        : h}
+                      {h === "CLV" ? (
+                        <span style={{ display: "inline-flex", alignItems: "center", gap: 4, justifyContent: "flex-end" }}>
+                          CLV
+                          <InfoTip align="right" text="Closing Line Value: how your odds compared to the market's final price at kickoff. Beating it regularly is the sign of a real edge. Shown once you add closing odds to a single." />
+                        </span>
+                      ) : h}
                     </th>
                   ))}
                 </tr>

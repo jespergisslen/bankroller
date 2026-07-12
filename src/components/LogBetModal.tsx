@@ -4,6 +4,7 @@ import { useState, useEffect } from "react";
 import { CURRENCIES, type Currency } from "@/lib/currencyContext";
 import { usePersona } from "@/lib/personaContext";
 import { saveBet } from "@/lib/bets";
+import { InfoTip } from "@/components/InfoTip";
 
 interface LogBetModalProps {
   onClose: () => void;
@@ -69,42 +70,6 @@ const emptySelection = (): Selection => ({
 function makeSelections(count: number, existing: Selection[]): Selection[] {
   if (count <= existing.length) return existing.slice(0, count);
   return [...existing, ...Array.from({ length: count - existing.length }, emptySelection)];
-}
-
-function InfoTip({ text }: { text: string }) {
-  const [show, setShow] = useState(false);
-  return (
-    <span
-      style={{ display: "inline-flex" }}
-      onMouseEnter={() => setShow(true)}
-      onMouseLeave={() => setShow(false)}
-    >
-      <span
-        role="img"
-        aria-label="What is a unit?"
-        style={{
-          display: "inline-flex", alignItems: "center", justifyContent: "center",
-          width: 14, height: 14, borderRadius: "50%", cursor: "help",
-          border: "1px solid var(--line-3)", color: "var(--text-3)",
-          fontFamily: "var(--mono)", fontSize: 9, fontWeight: 700, lineHeight: 1, textTransform: "none",
-        }}
-      >i</span>
-      {show && (
-        <span style={{
-          // Anchored to the label row (its relative parent), not the icon.
-          // Reset the inherited .label styles (uppercase, letter-spacing and
-          // crucially white-space: nowrap) so the text wraps inside the box.
-          position: "absolute", bottom: "calc(100% + 8px)", left: 0, zIndex: 50,
-          display: "block", boxSizing: "border-box",
-          width: 240, maxWidth: "calc(100vw - 56px)", padding: "10px 12px", borderRadius: 8,
-          background: "var(--bg-2)", border: "1px solid var(--line-2)",
-          color: "var(--text-2)", fontSize: 11.5, lineHeight: 1.5, fontWeight: 400,
-          textTransform: "none", letterSpacing: "normal", whiteSpace: "normal",
-          boxShadow: "0 8px 24px rgba(0,0,0,0.45)", pointerEvents: "none",
-        }}>{text}</span>
-      )}
-    </span>
-  );
 }
 
 export function LogBetModal({ onClose, onSaved }: LogBetModalProps) {
