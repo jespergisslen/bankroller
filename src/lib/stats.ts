@@ -17,8 +17,8 @@ export interface BetStats {
 }
 
 const SPORT_EMOJI: Record<string, string> = {
-  "⚽": "Football", "🎾": "Tennis", "⛳": "Golf", "🐎": "Trotting",
-  "🏀": "Basketball", "🏒": "Ice Hockey",
+  Football: "⚽", Tennis: "🎾", Golf: "⛳", Trotting: "🐎",
+  Basketball: "🏀", "Ice Hockey": "🏒", Other: "🎱",
 };
 
 export function computeStats(bets: Bet[]): BetStats {
@@ -67,8 +67,8 @@ export function computeStats(bets: Bet[]): BetStats {
     if (bet.result !== "open" && bet.profit !== null) {
       const sel0 = bet.selections[0];
       if (sel0) {
-        const sportName = SPORT_EMOJI[sel0.sport] ?? sel0.sport ?? "Other";
-        if (!sportAgg[sportName]) sportAgg[sportName] = { profit: 0, staked: 0, vol: 0, emoji: sel0.sport };
+        const sportName = sel0.sport ?? "Other";
+        if (!sportAgg[sportName]) sportAgg[sportName] = { profit: 0, staked: 0, vol: 0, emoji: SPORT_EMOJI[sportName] ?? "" };
         sportAgg[sportName].profit += bet.profit;
         sportAgg[sportName].staked += bet.stake;
         sportAgg[sportName].vol += 1;
