@@ -6,7 +6,11 @@ import { useState } from "react";
 // inherited label styles (uppercase, letter-spacing and white-space: nowrap)
 // so the text wraps inside the box, and can align left or right so it stays
 // on-screen wherever the icon sits.
-export function InfoTip({ text, align = "left" }: { text: string; align?: "left" | "right" }) {
+export function InfoTip({ text, align = "left", placement = "top" }: {
+  text: string;
+  align?: "left" | "right";
+  placement?: "top" | "bottom";
+}) {
   const [show, setShow] = useState(false);
   return (
     <span
@@ -26,7 +30,8 @@ export function InfoTip({ text, align = "left" }: { text: string; align?: "left"
       >i</span>
       {show && (
         <span style={{
-          position: "absolute", bottom: "calc(100% + 8px)", zIndex: 50,
+          position: "absolute", zIndex: 50,
+          ...(placement === "bottom" ? { top: "calc(100% + 8px)" } : { bottom: "calc(100% + 8px)" }),
           ...(align === "right" ? { right: 0 } : { left: 0 }),
           display: "block", boxSizing: "border-box",
           width: 240, maxWidth: "calc(100vw - 56px)", padding: "10px 12px", borderRadius: 8,

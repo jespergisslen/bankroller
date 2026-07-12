@@ -468,7 +468,7 @@ export default function DashboardPage() {
                       {h === "CLV" ? (
                         <span style={{ display: "inline-flex", alignItems: "center", gap: 4, justifyContent: "flex-end" }}>
                           CLV
-                          <InfoTip align="right" text="Closing Line Value: how your odds compared to the market's final price at kickoff. Beating it regularly is the sign of a real edge. Shown once you add closing odds to a single." />
+                          <InfoTip align="right" placement="bottom" text="Closing Line Value: how your odds compared to the market's final price at kickoff. Beating it regularly is the sign of a real edge. Shown once you add closing odds to a single." />
                         </span>
                       ) : h}
                     </th>
