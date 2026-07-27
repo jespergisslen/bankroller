@@ -113,7 +113,7 @@ export function LogBetModal({ onClose, onSaved }: LogBetModalProps) {
     }
     setSaving(true);
     setSaveError(null);
-    const { error } = await saveBet({
+    const { error, slug } = await saveBet({
       betType,
       stake: parseFloat(stake),
       currency: betCurrency,
@@ -134,6 +134,10 @@ export function LogBetModal({ onClose, onSaved }: LogBetModalProps) {
     });
     setSaving(false);
     if (error) { setSaveError(error); return; }
+    // Warm the OG card at the edge so the share preview (X, etc.) has it ready.
+    if (isPublic && slug) {
+      fetch(`/tip/${slug}/opengraph-image`, { cache: "no-store" }).catch(() => {});
+    }
     onSaved?.();
     onClose();
   };

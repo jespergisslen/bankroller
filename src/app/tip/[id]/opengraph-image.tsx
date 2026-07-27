@@ -99,6 +99,15 @@ export default async function Image({ params }: { params: Promise<{ id: string }
         </div>
       </div>
     ),
-    { ...size, fonts: fonts.length ? fonts : undefined }
+    {
+      ...size,
+      fonts: fonts.length ? fonts : undefined,
+      // Cache the generated card at the edge so crawlers (X, etc.) get it
+      // instantly after the first generation instead of a ~1.4s cold render
+      // every time. The card content is effectively static once published.
+      headers: {
+        "cache-control": "public, max-age=0, s-maxage=86400, stale-while-revalidate=604800",
+      },
+    }
   );
 }

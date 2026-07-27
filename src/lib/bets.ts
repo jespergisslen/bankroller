@@ -501,7 +501,7 @@ export async function saveBet(params: {
   analysis: string;
   isMaxbet: boolean;
   selections: Omit<Selection, "closingOdds">[];
-}): Promise<{ error: string | null }> {
+}): Promise<{ error: string | null; slug?: string }> {
   const supabase = createClient();
   const { data: { session } } = await supabase.auth.getSession();
   const user = session?.user ?? null;
@@ -549,7 +549,7 @@ export async function saveBet(params: {
   const slug = `${base}-${String(bet.id).slice(0, 8)}`;
   await supabase.from("bets").update({ slug }).eq("id", bet.id);
 
-  return { error: null };
+  return { error: null, slug };
 }
 
 // Update closing odds for a bet's selections
